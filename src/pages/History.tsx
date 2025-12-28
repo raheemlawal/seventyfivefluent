@@ -1,4 +1,3 @@
-import { useProfile } from '@/hooks/useProfile'
 import { useDailyLogs } from '@/hooks/useDailyLogs'
 import { AppLayout } from '@/components/layout/AppLayout'
 import { CalendarView } from '@/components/history/CalendarView'
