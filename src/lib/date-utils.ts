@@ -1,5 +1,5 @@
-import { format, formatInTimeZone, toDate } from 'date-fns-tz'
-import { parseISO, startOfDay } from 'date-fns'
+import { format, formatInTimeZone } from 'date-fns-tz'
+import { parseISO } from 'date-fns'
 
 /**
  * Get today's date in the user's timezone as a date string (YYYY-MM-DD)
@@ -12,7 +12,7 @@ export function getTodayInTimezone(timezone: string = 'UTC'): string {
 /**
  * Convert a date string to a Date object in the user's timezone
  */
-export function parseDateInTimezone(dateString: string, timezone: string = 'UTC'): Date {
+export function parseDateInTimezone(dateString: string, _timezone: string = 'UTC'): Date {
   // Parse the date string and create a date in the user's timezone
   const date = parseISO(dateString)
   return date

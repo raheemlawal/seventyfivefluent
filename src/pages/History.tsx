@@ -9,7 +9,6 @@ import { Badge } from '@/components/ui/badge'
 import { CheckCircle2, XCircle } from 'lucide-react'
 
 export default function History() {
-  const { profile } = useProfile()
   const { logs, loading } = useDailyLogs()
 
   if (loading) {

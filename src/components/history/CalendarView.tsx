@@ -1,11 +1,9 @@
 import { useDailyLogs } from '@/hooks/useDailyLogs'
 import { useProfile } from '@/hooks/useProfile'
 import { isDailyLogComplete, getCompletionPercentage } from '@/lib/daily-log-utils'
-import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isToday as isTodayDate } from 'date-fns'
-import { parseISO } from 'date-fns'
+import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth } from 'date-fns'
 import { getTodayInTimezone } from '@/lib/date-utils'
 import { Card, CardContent } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
 import { CheckCircle2, XCircle, Circle } from 'lucide-react'
 
 export function CalendarView() {

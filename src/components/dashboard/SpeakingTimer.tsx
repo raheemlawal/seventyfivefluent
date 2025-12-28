@@ -13,7 +13,7 @@ interface SpeakingTimerProps {
 export function SpeakingTimer({ done, onDoneChange }: SpeakingTimerProps) {
   const [seconds, setSeconds] = useState(0)
   const [isRunning, setIsRunning] = useState(false)
-  const intervalRef = useRef<NodeJS.Timeout | null>(null)
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
   const goalSeconds = 5 * 60 // 5 minutes
 

@@ -1,15 +1,12 @@
 import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useAuth } from '@/contexts/AuthContext'
 import { useProfile } from '@/hooks/useProfile'
 import { DailyChecklist } from '@/components/dashboard/DailyChecklist'
 import { AppLayout } from '@/components/layout/AppLayout'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
 import { formatDate, getTodayInTimezone } from '@/lib/date-utils'
 
 export default function Dashboard() {
-  const { user } = useAuth()
   const { profile, loading } = useProfile()
   const navigate = useNavigate()
 

@@ -2,7 +2,7 @@ import { useDailyLogs } from '@/hooks/useDailyLogs'
 import { useProfile } from '@/hooks/useProfile'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { isDailyLogComplete } from '@/lib/daily-log-utils'
-import { format, parseISO, eachDayOfInterval, startOfDay, subDays } from 'date-fns'
+import { format, parseISO, eachDayOfInterval, subDays } from 'date-fns'
 import { getTodayInTimezone } from '@/lib/date-utils'
 
 export function StreakVisualization() {

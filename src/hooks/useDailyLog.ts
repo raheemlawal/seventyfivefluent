@@ -27,7 +27,7 @@ export function useDailyLog(date?: string) {
         const { data, error } = await supabase
           .from('daily_logs')
           .select('*')
-          .eq('user_id', user.id)
+          .eq('user_id', user!.id)
           .eq('log_date', targetDate)
           .single()
 

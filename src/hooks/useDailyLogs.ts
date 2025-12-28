@@ -21,7 +21,7 @@ export function useDailyLogs(startDate?: string, endDate?: string) {
         let query = supabase
           .from('daily_logs')
           .select('*')
-          .eq('user_id', user.id)
+          .eq('user_id', user!.id)
           .order('log_date', { ascending: false })
 
         if (startDate) {
