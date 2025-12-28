@@ -23,9 +23,13 @@ export function AuthForm({ mode, onSuccess }: AuthFormProps) {
 
     try {
       if (mode === 'signup') {
+        const redirectUrl = window.location.origin
         const { error } = await supabase.auth.signUp({
           email,
           password,
+          options: {
+            emailRedirectTo: redirectUrl,
+          },
         })
         if (error) throw error
       } else {
