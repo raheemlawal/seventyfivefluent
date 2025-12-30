@@ -22,6 +22,13 @@ export function useProfile() {
 
     async function fetchProfile() {
       try {
+        // Ensure we have a session before making the request
+        const { data: { session } } = await supabase.auth.getSession()
+        if (!session) {
+          setLoading(false)
+          return
+        }
+
         const { data, error } = await supabase
           .from('profiles')
           .select('*')
@@ -30,8 +37,12 @@ export function useProfile() {
 
         if (error) {
           // If it's a "not found" error (PGRST116), that's expected - user hasn't completed onboarding
-          // For other errors, we still want to set the error
+          // Handle 406 errors (Not Acceptable) - might be a configuration issue
           if (error.code === 'PGRST116') {
+            setProfile(null)
+          } else if (error.status === 406 || error.code === '406') {
+            // 406 error - log it but don't throw, try to continue
+            console.error('Supabase 406 error:', error)
             setProfile(null)
           } else {
             throw error

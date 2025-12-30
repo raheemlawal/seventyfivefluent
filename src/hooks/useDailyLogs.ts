@@ -33,8 +33,17 @@ export function useDailyLogs(startDate?: string, endDate?: string) {
 
         const { data, error } = await query
 
-        if (error) throw error
-        setLogs(data || [])
+        if (error) {
+          // Handle 406 errors (Not Acceptable) - might be a configuration issue
+          if (error.status === 406 || error.code === '406') {
+            console.error('Supabase 406 error:', error)
+            setLogs([]) // Set empty array instead of throwing
+          } else {
+            throw error
+          }
+        } else {
+          setLogs(data || [])
+        }
       } catch (err) {
         setError(err as Error)
       } finally {

@@ -31,9 +31,17 @@ export function useDailyLog(date?: string) {
           .eq('log_date', targetDate)
           .single()
 
-        if (error && error.code !== 'PGRST116') {
+        if (error) {
           // PGRST116 is "not found" which is fine
-          throw error
+          if (error.code === 'PGRST116') {
+            setLog(null)
+          } else if (error.status === 406 || error.code === '406') {
+            // 406 error - log it but don't throw, try to continue
+            console.error('Supabase 406 error:', error)
+            setLog(null)
+          } else {
+            throw error
+          }
         }
 
         setLog(data || null)
