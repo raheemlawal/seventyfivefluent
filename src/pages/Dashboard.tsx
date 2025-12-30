@@ -11,8 +11,10 @@ export default function Dashboard() {
   const navigate = useNavigate()
 
   useEffect(() => {
+    // Only redirect to onboarding if we've finished loading and there's no profile
+    // This prevents redirect loops and race conditions
     if (!loading && !profile) {
-      navigate('/onboarding')
+      navigate('/onboarding', { replace: true })
     }
   }, [profile, loading, navigate])
 

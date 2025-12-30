@@ -10,8 +10,12 @@ export function useProfile() {
   const [error, setError] = useState<Error | null>(null)
 
   useEffect(() => {
+    // Reset state when user changes
+    setProfile(null)
+    setError(null)
+    setLoading(true)
+
     if (!user) {
-      setProfile(null)
       setLoading(false)
       return
     }
@@ -24,8 +28,17 @@ export function useProfile() {
           .eq('id', user!.id)
           .single()
 
-        if (error) throw error
-        setProfile(data)
+        if (error) {
+          // If it's a "not found" error (PGRST116), that's expected - user hasn't completed onboarding
+          // For other errors, we still want to set the error
+          if (error.code === 'PGRST116') {
+            setProfile(null)
+          } else {
+            throw error
+          }
+        } else {
+          setProfile(data)
+        }
       } catch (err) {
         setError(err as Error)
       } finally {
