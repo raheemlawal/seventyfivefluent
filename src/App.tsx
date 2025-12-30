@@ -34,8 +34,6 @@ function AuthCallbackHandler() {
           window.history.replaceState(null, '', window.location.pathname)
 
           if (data.session) {
-            // Check if this is a password reset (type === 'recovery')
-            const { data: { user } } = await supabase.auth.getUser()
             // If we're on reset-password route, stay there; otherwise redirect to dashboard
             if (window.location.pathname === '/reset-password') {
               // Stay on reset password page
