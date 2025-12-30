@@ -6,6 +6,8 @@ import { ErrorBoundary } from '@/components/ui/ErrorBoundary'
 import Landing from '@/pages/Landing'
 import Login from '@/pages/Login'
 import SignUp from '@/pages/SignUp'
+import ForgotPassword from '@/pages/ForgotPassword'
+import ResetPassword from '@/pages/ResetPassword'
 import Onboarding from '@/pages/Onboarding'
 import Dashboard from '@/pages/Dashboard'
 import History from '@/pages/History'
@@ -32,7 +34,14 @@ function AuthCallbackHandler() {
           window.history.replaceState(null, '', window.location.pathname)
 
           if (data.session) {
-            // User is authenticated, redirect to dashboard
+            // Check if this is a password reset (type === 'recovery')
+            const { data: { user } } = await supabase.auth.getUser()
+            // If we're on reset-password route, stay there; otherwise redirect to dashboard
+            if (window.location.pathname === '/reset-password') {
+              // Stay on reset password page
+              return
+            }
+            // Otherwise, redirect to dashboard
             navigate('/dashboard', { replace: true })
           } else {
             // No session, redirect to login
@@ -59,6 +68,8 @@ function AppRoutes() {
         <Route path="/" element={<Landing />} />
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<SignUp />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
         <Route
           path="/onboarding"
           element={
