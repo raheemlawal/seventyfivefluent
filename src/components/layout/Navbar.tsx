@@ -14,11 +14,11 @@ export function Navbar() {
   ]
 
   return (
-    <nav className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <nav className="border-b bg-card">
       <div className="container mx-auto px-4">
         <div className="flex h-16 items-center justify-between">
           <div className="flex items-center gap-8">
-            <Link to="/dashboard" className="text-xl font-bold">
+            <Link to="/dashboard" className="text-xl font-bold text-foreground">
               75 Fluent
             </Link>
             <div className="hidden md:flex items-center gap-1">

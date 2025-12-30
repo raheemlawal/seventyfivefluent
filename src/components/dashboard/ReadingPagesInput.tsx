@@ -33,7 +33,7 @@ export function ReadingPagesInput({ value, onChange }: ReadingPagesInputProps) {
           />
           <Progress value={percentage} className="h-2" />
           {value >= goal && (
-            <p className="text-sm text-green-600">✓ Goal reached!</p>
+            <p className="text-sm text-[#2d5016]">✓ Goal reached!</p>
           )}
         </div>
       </CardContent>

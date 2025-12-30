@@ -43,10 +43,10 @@ export function StreakVisualization() {
                   key={dateStr}
                   className={`flex-1 aspect-square rounded ${
                     isComplete
-                      ? 'bg-green-500'
+                      ? 'bg-[#a8c090]'
                       : log
-                      ? 'bg-yellow-500'
-                      : 'bg-gray-200 dark:bg-gray-800'
+                      ? 'bg-[#e8d4b8]'
+                      : 'bg-muted'
                   } ${isToday ? 'ring-2 ring-primary' : ''}`}
                   title={format(day, 'MMM d, yyyy')}
                 />
@@ -55,15 +55,15 @@ export function StreakVisualization() {
           </div>
           <div className="flex items-center justify-center gap-4 text-xs text-muted-foreground mt-4">
             <div className="flex items-center gap-2">
-              <div className="h-3 w-3 rounded bg-green-500" />
+              <div className="h-3 w-3 rounded bg-[#a8c090]" />
               <span>Complete</span>
             </div>
             <div className="flex items-center gap-2">
-              <div className="h-3 w-3 rounded bg-yellow-500" />
+              <div className="h-3 w-3 rounded bg-[#e8d4b8]" />
               <span>Partial</span>
             </div>
             <div className="flex items-center gap-2">
-              <div className="h-3 w-3 rounded bg-gray-300" />
+              <div className="h-3 w-3 rounded bg-muted" />
               <span>None</span>
             </div>
           </div>

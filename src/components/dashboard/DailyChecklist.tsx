@@ -144,9 +144,9 @@ export function DailyChecklist() {
             </div>
           </div>
           {isComplete && (
-            <div className="mt-4 p-4 bg-green-50 dark:bg-green-950 rounded-md flex items-center gap-2">
-              <CheckCircle2 className="h-5 w-5 text-green-600" />
-              <span className="text-green-800 dark:text-green-200 font-medium">
+            <div className="mt-4 p-4 bg-[#f0f5ed] rounded-md flex items-center gap-2 border border-[#331011]/10">
+              <CheckCircle2 className="h-5 w-5 text-[#2d5016]" />
+              <span className="text-[#2d5016] font-medium">
                 All tasks completed! Great work!
               </span>
             </div>

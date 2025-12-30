@@ -36,15 +36,15 @@ export function CalendarView() {
             <h3 className="text-lg font-semibold">{format(currentMonth, 'MMMM yyyy')}</h3>
             <div className="flex items-center gap-4 text-sm">
               <div className="flex items-center gap-2">
-                <div className="h-4 w-4 rounded bg-green-500" />
+                <div className="h-4 w-4 rounded bg-[#a8c090]" />
                 <span>Complete</span>
               </div>
               <div className="flex items-center gap-2">
-                <div className="h-4 w-4 rounded bg-yellow-500" />
+                <div className="h-4 w-4 rounded bg-[#e8d4b8]" />
                 <span>Partial</span>
               </div>
               <div className="flex items-center gap-2">
-                <div className="h-4 w-4 rounded bg-gray-300" />
+                <div className="h-4 w-4 rounded bg-muted" />
                 <span>None</span>
               </div>
             </div>
@@ -62,12 +62,12 @@ export function CalendarView() {
               const isCurrentDay = today && format(day, 'yyyy-MM-dd') === today
               const isCurrentMonth = isSameMonth(day, currentMonth)
 
-              let bgColor = 'bg-gray-100 dark:bg-gray-800'
+              let bgColor = 'bg-muted'
               if (log) {
                 if (isComplete) {
-                  bgColor = 'bg-green-500'
+                  bgColor = 'bg-[#a8c090]'
                 } else if (percentage > 0) {
-                  bgColor = 'bg-yellow-500'
+                  bgColor = 'bg-[#e8d4b8]'
                 }
               }
 
@@ -91,7 +91,7 @@ export function CalendarView() {
                         ) : percentage > 0 ? (
                           <Circle className="h-3 w-3 text-white" />
                         ) : (
-                          <XCircle className="h-3 w-3 text-gray-600" />
+                          <XCircle className="h-3 w-3 text-muted-foreground" />
                         )}
                       </div>
                     )}

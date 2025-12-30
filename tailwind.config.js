@@ -13,9 +13,9 @@ export default {
         sm: "calc(var(--radius) - 4px)",
       },
       colors: {
-        border: "hsl(var(--border))",
-        input: "hsl(var(--input))",
-        ring: "hsl(var(--ring))",
+        border: "hsl(var(--border) / 0.12)",
+        input: "hsl(var(--input) / 0.12)",
+        ring: "hsl(var(--ring) / 0.3)",
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
         primary: {
