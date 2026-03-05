@@ -40,7 +40,7 @@ export function useDailyLogs(startDate?: string, endDate?: string) {
 
           if (error) {
             // Handle 406 errors (Not Acceptable) - retry
-            if (error.status === 406 || error.code === '406') {
+            if (error.code === '406' || error.message?.includes('406') || error.message?.includes('Not Acceptable')) {
               retries++
               if (retries < maxRetries) {
                 // Exponential backoff: 1s, 2s, 3s

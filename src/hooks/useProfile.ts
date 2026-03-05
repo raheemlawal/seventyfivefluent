@@ -40,7 +40,7 @@ export function useProfile() {
           // Handle 406 errors (Not Acceptable) - might be a configuration issue
           if (error.code === 'PGRST116') {
             setProfile(null)
-          } else if (error.status === 406 || error.code === '406') {
+          } else if (error.code === '406' || error.message?.includes('406') || error.message?.includes('Not Acceptable')) {
             // 406 error - log it but don't throw, try to continue
             console.error('Supabase 406 error:', error)
             setProfile(null)

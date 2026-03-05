@@ -27,7 +27,6 @@ export function useDailyLog(date?: string) {
         // Retry logic for 406 errors
         let retries = 0
         const maxRetries = 3
-        let lastError = null
 
         while (retries < maxRetries) {
           const { data, error } = await supabase
@@ -42,9 +41,8 @@ export function useDailyLog(date?: string) {
             if (error.code === 'PGRST116') {
               setLog(null)
               return
-            } else if (error.status === 406 || error.code === '406') {
+            } else if (error.code === '406' || error.message?.includes('406') || error.message?.includes('Not Acceptable')) {
               // Retry on 406 errors
-              lastError = error
               retries++
               if (retries < maxRetries) {
                 // Exponential backoff: 1s, 2s, 3s
