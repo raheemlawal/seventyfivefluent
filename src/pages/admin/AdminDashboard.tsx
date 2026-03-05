@@ -1,11 +1,10 @@
-import { useDailyLogs } from '@/hooks/useDailyLogs'
 import { supabase } from '@/lib/supabase'
 import { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/contexts/AuthContext'
 import { useNavigate } from 'react-router-dom'
-import { LogOut, Users, Languages, Globe, UserCheck, UserX } from 'lucide-react'
+import { LogOut, Users, Languages, Globe, UserCheck } from 'lucide-react'
 import { LanguageStats } from '@/components/admin/LanguageStats'
 
 export default function AdminDashboard() {

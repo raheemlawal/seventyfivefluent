@@ -17,9 +17,27 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Select } from '@/components/ui/select'
 import { Label } from '@/components/ui/label'
-import { getCompletionPercentage, isDailyLogComplete } from '@/lib/daily-log-utils'
-import { CheckCircle2, Save } from 'lucide-react'
-import type { DailyLog, DailyLogInsert, DailyLogUpdate } from '@/types'
+import { Save } from 'lucide-react'
+import type { DailyLogInsert, DailyLogUpdate } from '@/types'
+
+// Define types for activity states
+interface ActivityState<T> {
+  value: T
+  language: string | null
+}
+
+interface MediaActivityState {
+  done: boolean
+  title: string
+  url: string
+  language: string | null
+}
+
+interface ImmersionActivityState {
+  done: boolean
+  note: string
+  language: string | null
+}
 
 export function DailyChecklist() {
   const { profile } = useProfile()
@@ -68,7 +86,7 @@ export function DailyChecklist() {
     if (todayLogs.length > 0) {
       // Initialize from existing logs
       const firstLog = todayLogs[0]
-      setActivities(prev => ({
+      setActivities({
         study_minutes: { 
           value: firstLog.study_minutes || 0, 
           language: firstLog.language || targetLanguages[0] || null 
@@ -100,45 +118,9 @@ export function DailyChecklist() {
           value: firstLog.study_log_note || '', 
           language: firstLog.language || targetLanguages[0] || null 
         },
-      }))
+      })
     }
   }, [todayLogs, targetLanguages])
-
-  // Save activity to a specific language's log
-  const saveActivity = useCallback(async (
-    activityType: keyof typeof activities,
-    updates: Partial<DailyLogUpdate>
-  ) => {
-    if (!user || !today) return
-
-    const activity = activities[activityType]
-    const language = activity.language
-    const existingLog = getLogForLanguage(language)
-
-    try {
-      if (existingLog) {
-        // Update existing log
-        await supabase
-          .from('daily_logs')
-          .update(updates)
-          .eq('id', existingLog.id)
-      } else {
-        // Create new log for this language
-        const newLog: DailyLogInsert = {
-          user_id: user.id,
-          log_date: today,
-          language: language || null,
-          ...updates,
-        }
-        await supabase
-          .from('daily_logs')
-          .insert(newLog)
-      }
-    } catch (error) {
-      console.error(`Failed to save ${activityType}:`, error)
-      throw error
-    }
-  }, [user, today, activities, getLogForLanguage])
 
   // Save all activities
   const handleSave = useCallback(async () => {
@@ -175,28 +157,28 @@ export function DailyChecklist() {
 
         switch (key) {
           case 'study_minutes':
-            log.study_minutes = activity.value
+            log.study_minutes = (activity as ActivityState<number>).value
             break
           case 'reading_pages':
-            log.reading_pages = activity.value
+            log.reading_pages = (activity as ActivityState<number>).value
             break
           case 'speaking_done':
-            log.speaking_done = activity.value
+            log.speaking_done = (activity as ActivityState<boolean>).value
             break
           case 'media':
-            log.media_done = activity.done
-            log.media_title = activity.title || null
-            log.media_url = activity.url || null
+            log.media_done = (activity as MediaActivityState).done
+            log.media_title = (activity as MediaActivityState).title || null
+            log.media_url = (activity as MediaActivityState).url || null
             break
           case 'journal':
-            log.journal_entry = activity.value || null
+            log.journal_entry = (activity as ActivityState<string>).value || null
             break
           case 'immersion':
-            log.immersion_done = activity.done
-            log.immersion_note = activity.note || null
+            log.immersion_done = (activity as ImmersionActivityState).done
+            log.immersion_note = (activity as ImmersionActivityState).note || null
             break
           case 'study_log':
-            log.study_log_note = activity.value || null
+            log.study_log_note = (activity as ActivityState<string>).value || null
             break
         }
       })
@@ -240,10 +222,9 @@ export function DailyChecklist() {
             ...updates,
           }
           
-          const { error, data } = await supabase
+          const { error } = await supabase
             .from('daily_logs')
             .insert(newLog)
-            .select()
           
           // If we get a conflict (unique constraint violation), update instead
           if (error) {

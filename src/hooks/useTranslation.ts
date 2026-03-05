@@ -1,6 +1,6 @@
 import { useEffect, useMemo } from 'react'
 import { useProfile } from '@/hooks/useProfile'
-import { getTranslations, type Translations } from '@/lib/i18n'
+import { getTranslations } from '@/lib/i18n'
 
 const LANGUAGE_STORAGE_KEY = '75fluent_ui_language'
 

@@ -53,11 +53,6 @@ export interface Translations {
   back: string
   next: string
   
-  // Stats
-  consecutiveDays: string
-  bestStreak: string
-  daysCompleted: string
-  
   // Library empty states
   startWritingJournal: string
   logPodcastsVideos: string
@@ -253,6 +248,32 @@ const translations: Record<Language, Translations> = {
     restartAccountWarning: 'This will permanently delete all your daily logs and reset your streaks.',
     restartAccountButton: 'Restart Account',
     info: 'Info',
+    username: 'Username',
+    changeUsername: 'Change Username',
+    usernamePlaceholder: 'Enter a new username',
+    usernameAvailable: 'Username is available',
+    usernameUnavailable: 'Username is already in use',
+    usernameChecking: 'Checking availability...',
+    saveUsername: 'Save Username',
+    savingUsername: 'Saving...',
+    membershipStatus: 'Membership Status',
+    membershipBasic: 'Basic',
+    membershipUpgrade: 'Upgrade',
+    membershipUpgradeDisabled: 'Upgrade (Coming Soon)',
+    uiLanguage: 'UI Language',
+    changeUILanguage: 'Change UI Language',
+    targetLanguages: 'Target Languages',
+    languagesLearning: 'Languages You Are Learning',
+    resetAll: 'Reset All Data',
+    resetAllDescription: 'This will remove all your progress, logs, and settings. You will need to complete registration again.',
+    resetAllConfirm: 'Are you sure you want to reset all your data? This action cannot be undone.',
+    resetAllWarning: 'This will permanently delete all your data.',
+    resetAllButton: 'Reset All',
+    confirm: 'Confirm',
+    keepLanguages: 'Keep Current Languages',
+    changeLanguages: 'Change Languages',
+    languageChangeTitle: 'Change UI Language',
+    languageChangeDescription: 'Do you want to keep your current target languages or change them?',
   },
   Spanish: {
     dashboard: 'Panel',
