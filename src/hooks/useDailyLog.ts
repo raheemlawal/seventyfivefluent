@@ -24,27 +24,46 @@ export function useDailyLog(date?: string) {
 
     async function fetchLog() {
       try {
-        const { data, error } = await supabase
-          .from('daily_logs')
-          .select('*')
-          .eq('user_id', user!.id)
-          .eq('log_date', targetDate)
-          .single()
+        // Retry logic for 406 errors
+        let retries = 0
+        const maxRetries = 3
+        let lastError = null
 
-        if (error) {
-          // PGRST116 is "not found" which is fine
-          if (error.code === 'PGRST116') {
-            setLog(null)
-          } else if (error.status === 406 || error.code === '406') {
-            // 406 error - log it but don't throw, try to continue
-            console.error('Supabase 406 error:', error)
-            setLog(null)
-          } else {
-            throw error
+        while (retries < maxRetries) {
+          const { data, error } = await supabase
+            .from('daily_logs')
+            .select('*')
+            .eq('user_id', user!.id)
+            .eq('log_date', targetDate)
+            .single()
+
+          if (error) {
+            // PGRST116 is "not found" which is fine
+            if (error.code === 'PGRST116') {
+              setLog(null)
+              return
+            } else if (error.status === 406 || error.code === '406') {
+              // Retry on 406 errors
+              lastError = error
+              retries++
+              if (retries < maxRetries) {
+                // Exponential backoff: 1s, 2s, 3s
+                await new Promise(resolve => setTimeout(resolve, 1000 * retries))
+                continue
+              }
+              // After max retries, log and continue
+              console.error('Supabase 406 error after retries:', error)
+              setLog(null)
+              return
+            } else {
+              throw error
+            }
           }
-        }
 
-        setLog(data || null)
+          // Success - set the log and return
+          setLog(data || null)
+          return
+        }
       } catch (err) {
         setError(err as Error)
       } finally {

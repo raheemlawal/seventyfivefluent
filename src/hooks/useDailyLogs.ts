@@ -18,31 +18,47 @@ export function useDailyLogs(startDate?: string, endDate?: string) {
 
     async function fetchLogs() {
       try {
-        let query = supabase
-          .from('daily_logs')
-          .select('*')
-          .eq('user_id', user!.id)
-          .order('log_date', { ascending: false })
+        // Retry logic for 406 errors
+        let retries = 0
+        const maxRetries = 3
 
-        if (startDate) {
-          query = query.gte('log_date', startDate)
-        }
-        if (endDate) {
-          query = query.lte('log_date', endDate)
-        }
+        while (retries < maxRetries) {
+          let query = supabase
+            .from('daily_logs')
+            .select('*')
+            .eq('user_id', user!.id)
+            .order('log_date', { ascending: false })
 
-        const { data, error } = await query
-
-        if (error) {
-          // Handle 406 errors (Not Acceptable) - might be a configuration issue
-          if (error.status === 406 || error.code === '406') {
-            console.error('Supabase 406 error:', error)
-            setLogs([]) // Set empty array instead of throwing
-          } else {
-            throw error
+          if (startDate) {
+            query = query.gte('log_date', startDate)
           }
-        } else {
-          setLogs(data || [])
+          if (endDate) {
+            query = query.lte('log_date', endDate)
+          }
+
+          const { data, error } = await query
+
+          if (error) {
+            // Handle 406 errors (Not Acceptable) - retry
+            if (error.status === 406 || error.code === '406') {
+              retries++
+              if (retries < maxRetries) {
+                // Exponential backoff: 1s, 2s, 3s
+                await new Promise(resolve => setTimeout(resolve, 1000 * retries))
+                continue
+              }
+              // After max retries, log and set empty array
+              console.error('Supabase 406 error after retries:', error)
+              setLogs([])
+              return
+            } else {
+              throw error
+            }
+          } else {
+            // Success - set the logs and return
+            setLogs(data || [])
+            return
+          }
         }
       } catch (err) {
         setError(err as Error)

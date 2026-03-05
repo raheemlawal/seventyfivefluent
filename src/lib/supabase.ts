@@ -13,5 +13,20 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     persistSession: true,
     detectSessionInUrl: true,
   },
+  db: {
+    schema: 'public',
+  },
+  global: {
+    fetch: (url, options = {}) => {
+      return fetch(url, {
+        ...options,
+        headers: {
+          ...options.headers,
+          'Accept': 'application/json',
+          'apikey': supabaseAnonKey,
+        },
+      })
+    },
+  },
 })
 
