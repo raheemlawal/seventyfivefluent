@@ -29,26 +29,42 @@ export function useProfile() {
           return
         }
 
-        const { data, error } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', user!.id)
-          .single()
+        // Retry logic for 406 errors
+        let retries = 0
+        const maxRetries = 3
 
-        if (error) {
-          // If it's a "not found" error (PGRST116), that's expected - user hasn't completed onboarding
-          // Handle 406 errors (Not Acceptable) - might be a configuration issue
-          if (error.code === 'PGRST116') {
-            setProfile(null)
-          } else if (error.code === '406' || error.message?.includes('406') || error.message?.includes('Not Acceptable')) {
-            // 406 error - log it but don't throw, try to continue
-            console.error('Supabase 406 error:', error)
-            setProfile(null)
+        while (retries < maxRetries) {
+          const { data, error } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', user!.id)
+            .single()
+
+          if (error) {
+            // If it's a "not found" error (PGRST116), that's expected - user hasn't completed onboarding
+            if (error.code === 'PGRST116') {
+              setProfile(null)
+              return
+            } else if (error.code === '406' || error.message?.includes('406') || error.message?.includes('Not Acceptable')) {
+              // Retry on 406 errors
+              retries++
+              if (retries < maxRetries) {
+                // Exponential backoff: 1s, 2s, 3s
+                await new Promise(resolve => setTimeout(resolve, 1000 * retries))
+                continue
+              }
+              // After max retries, log and continue
+              console.error('Supabase 406 error after retries:', error)
+              setProfile(null)
+              return
+            } else {
+              throw error
+            }
           } else {
-            throw error
+            // Success - set the profile and return
+            setProfile(data)
+            return
           }
-        } else {
-          setProfile(data)
         }
       } catch (err) {
         setError(err as Error)

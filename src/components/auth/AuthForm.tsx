@@ -75,7 +75,6 @@ export function AuthForm({ mode, onSuccess }: AuthFormProps) {
               <ul className="list-disc list-inside space-y-1 ml-2">
                 <li>Check your spam folder</li>
                 <li>Make sure you entered the correct email address</li>
-                <li>Wait a few minutes and try again</li>
               </ul>
             </div>
             <Button
