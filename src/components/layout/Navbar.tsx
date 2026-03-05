@@ -3,7 +3,7 @@ import { Link, useLocation } from 'react-router-dom'
 import { useAuth } from '@/contexts/AuthContext'
 import { useTranslation } from '@/hooks/useTranslation'
 import { Button } from '@/components/ui/button'
-import { LogOut, Home, Calendar, TrendingUp, Menu, X, BookOpen } from 'lucide-react'
+import { LogOut, Home, Calendar, TrendingUp, Menu, X, BookOpen, Settings as SettingsIcon } from 'lucide-react'
 
 export function Navbar() {
   const { signOut } = useAuth()
@@ -16,6 +16,7 @@ export function Navbar() {
     { path: '/history', label: t.history, icon: Calendar },
     { path: '/progress', label: t.progress, icon: TrendingUp },
     { path: '/library', label: t.library, icon: BookOpen },
+    { path: '/settings', label: t.settings, icon: SettingsIcon },
   ]
 
   return (

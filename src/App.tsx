@@ -17,6 +17,7 @@ const Dashboard = lazy(() => import('@/pages/Dashboard'))
 const History = lazy(() => import('@/pages/History'))
 const Progress = lazy(() => import('@/pages/Progress'))
 const Library = lazy(() => import('@/pages/Library'))
+const Settings = lazy(() => import('@/pages/Settings'))
 const AdminLogin = lazy(() => import('@/pages/admin/AdminLogin'))
 const AdminDashboard = lazy(() => import('@/pages/admin/AdminDashboard'))
 
@@ -112,6 +113,14 @@ function AppRoutes() {
             element={
               <ProtectedRoute>
                 <Library />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/settings"
+            element={
+              <ProtectedRoute>
+                <Settings />
               </ProtectedRoute>
             }
           />

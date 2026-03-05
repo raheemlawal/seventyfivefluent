@@ -114,10 +114,14 @@ export interface Translations {
   friday: string
   saturday: string
   
-  // Profile
+  // Profile/Settings
   profile: string
   profileTitle: string
   profileDescription: string
+  settings: string
+  settingsTitle: string
+  settingsDescription: string
+  edit: string
   username: string
   changeUsername: string
   usernamePlaceholder: string
@@ -139,8 +143,14 @@ export interface Translations {
   resetAllConfirm: string
   resetAllWarning: string
   resetAllButton: string
+  restartAccount: string
+  restartAccountDescription: string
+  restartAccountConfirm: string
+  restartAccountWarning: string
+  restartAccountButton: string
   cancel: string
   confirm: string
+  info: string
   keepLanguages: string
   changeLanguages: string
   languageChangeTitle: string
@@ -229,6 +239,20 @@ const translations: Record<Language, Translations> = {
     error: 'Error',
     back: 'Back',
     next: 'Next',
+    settings: 'Settings',
+    settingsTitle: 'Settings',
+    settingsDescription: 'Manage your account settings and preferences',
+    edit: 'Edit',
+    cancel: 'Cancel',
+    profile: 'Profile',
+    profileTitle: 'Profile Settings',
+    profileDescription: 'Manage your account settings and preferences',
+    restartAccount: 'Restart Account',
+    restartAccountDescription: 'This will delete all your daily logs and reset your streaks. Your profile settings will remain unchanged.',
+    restartAccountConfirm: 'Are you sure you want to restart your account? This will delete all your progress and cannot be undone.',
+    restartAccountWarning: 'This will permanently delete all your daily logs and reset your streaks.',
+    restartAccountButton: 'Restart Account',
+    info: 'Info',
   },
   Spanish: {
     dashboard: 'Panel',
@@ -314,6 +338,10 @@ const translations: Record<Language, Translations> = {
     profile: 'Perfil',
     profileTitle: 'Configuración del Perfil',
     profileDescription: 'Administra la configuración y preferencias de tu cuenta',
+    settings: 'Configuración',
+    settingsTitle: 'Configuración',
+    settingsDescription: 'Administra la configuración y preferencias de tu cuenta',
+    edit: 'Editar',
     username: 'Nombre de Usuario',
     changeUsername: 'Cambiar Nombre de Usuario',
     usernamePlaceholder: 'Ingresa un nuevo nombre de usuario',
@@ -336,7 +364,13 @@ const translations: Record<Language, Translations> = {
     resetAllWarning: 'Esto eliminará permanentemente todos tus datos.',
     resetAllButton: 'Restablecer Todo',
     cancel: 'Cancelar',
+    restartAccount: 'Reiniciar Cuenta',
+    restartAccountDescription: 'Esto eliminará todos tus registros diarios y restablecerá tus rachas. Tus configuraciones de perfil permanecerán sin cambios.',
+    restartAccountConfirm: '¿Estás seguro de que deseas reiniciar tu cuenta? Esto eliminará todo tu progreso y no se puede deshacer.',
+    restartAccountWarning: 'Esto eliminará permanentemente todos tus registros diarios y restablecerá tus rachas.',
+    restartAccountButton: 'Reiniciar Cuenta',
     confirm: 'Confirmar',
+    info: 'Información',
     keepLanguages: 'Mantener Idiomas Actuales',
     changeLanguages: 'Cambiar Idiomas',
     languageChangeTitle: 'Cambiar Idioma de la Interfaz',
@@ -426,6 +460,10 @@ const translations: Record<Language, Translations> = {
     profile: 'Profiel',
     profileTitle: 'Profielinstellingen',
     profileDescription: 'Beheer je accountinstellingen en voorkeuren',
+    settings: 'Instellingen',
+    settingsTitle: 'Instellingen',
+    settingsDescription: 'Beheer je accountinstellingen en voorkeuren',
+    edit: 'Bewerken',
     username: 'Gebruikersnaam',
     changeUsername: 'Gebruikersnaam Wijzigen',
     usernamePlaceholder: 'Voer een nieuwe gebruikersnaam in',
@@ -448,7 +486,13 @@ const translations: Record<Language, Translations> = {
     resetAllWarning: 'Dit verwijdert permanent al je gegevens.',
     resetAllButton: 'Alles Resetten',
     cancel: 'Annuleren',
+    restartAccount: 'Account Herstarten',
+    restartAccountDescription: 'Dit verwijdert al je dagelijkse logs en reset je reeksen. Je profielinstellingen blijven ongewijzigd.',
+    restartAccountConfirm: 'Weet je zeker dat je je account wilt herstarten? Dit verwijdert al je voortgang en kan niet ongedaan worden gemaakt.',
+    restartAccountWarning: 'Dit verwijdert permanent al je dagelijkse logs en reset je reeksen.',
+    restartAccountButton: 'Account Herstarten',
     confirm: 'Bevestigen',
+    info: 'Informatie',
     keepLanguages: 'Huidige Talen Behouden',
     changeLanguages: 'Talen Wijzigen',
     languageChangeTitle: 'Interface Taal Wijzigen',
@@ -538,6 +582,10 @@ const translations: Record<Language, Translations> = {
     profile: 'Profil',
     profileTitle: 'Profilindstillinger',
     profileDescription: 'Administrer dine kontoindstillinger og præferencer',
+    settings: 'Indstillinger',
+    settingsTitle: 'Indstillinger',
+    settingsDescription: 'Administrer dine kontoindstillinger og præferencer',
+    edit: 'Rediger',
     username: 'Brugernavn',
     changeUsername: 'Skift Brugernavn',
     usernamePlaceholder: 'Indtast et nyt brugernavn',
@@ -560,7 +608,13 @@ const translations: Record<Language, Translations> = {
     resetAllWarning: 'Dette fjerner permanent alle dine data.',
     resetAllButton: 'Nulstil Alt',
     cancel: 'Annuller',
+    restartAccount: 'Genstart Konto',
+    restartAccountDescription: 'Dette fjerner alle dine daglige logs og nulstiller dine rækker. Dine profilindstillinger forbliver uændrede.',
+    restartAccountConfirm: 'Er du sikker på, at du vil genstarte din konto? Dette fjerner al din fremskridt og kan ikke fortrydes.',
+    restartAccountWarning: 'Dette fjerner permanent alle dine daglige logs og nulstiller dine rækker.',
+    restartAccountButton: 'Genstart Konto',
     confirm: 'Bekræft',
+    info: 'Information',
     keepLanguages: 'Behold Nuværende Sprog',
     changeLanguages: 'Skift Sprog',
     languageChangeTitle: 'Skift Interface Sprog',
@@ -650,6 +704,10 @@ const translations: Record<Language, Translations> = {
     profile: 'Profilo',
     profileTitle: 'Impostazioni del Profilo',
     profileDescription: 'Gestisci le impostazioni e le preferenze del tuo account',
+    settings: 'Impostazioni',
+    settingsTitle: 'Impostazioni',
+    settingsDescription: 'Gestisci le impostazioni e le preferenze del tuo account',
+    edit: 'Modifica',
     username: 'Nome Utente',
     changeUsername: 'Cambia Nome Utente',
     usernamePlaceholder: 'Inserisci un nuovo nome utente',
@@ -672,7 +730,13 @@ const translations: Record<Language, Translations> = {
     resetAllWarning: 'Questo rimuoverà permanentemente tutti i tuoi dati.',
     resetAllButton: 'Reimposta Tutto',
     cancel: 'Annulla',
+    restartAccount: 'Riavvia Account',
+    restartAccountDescription: 'Questo rimuoverà tutti i tuoi log giornalieri e reimposterà le tue serie. Le tue impostazioni del profilo rimarranno invariate.',
+    restartAccountConfirm: 'Sei sicuro di voler riavviare il tuo account? Questo rimuoverà tutti i tuoi progressi e non può essere annullato.',
+    restartAccountWarning: 'Questo rimuoverà permanentemente tutti i tuoi log giornalieri e reimposterà le tue serie.',
+    restartAccountButton: 'Riavvia Account',
     confirm: 'Conferma',
+    info: 'Informazioni',
     keepLanguages: 'Mantieni Lingue Attuali',
     changeLanguages: 'Cambia Lingue',
     languageChangeTitle: 'Cambia Lingua dell\'Interfaccia',
