@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo, useCallback } from 'react'
 import { useDailyLog } from '@/hooks/useDailyLog'
 import { useProfile } from '@/hooks/useProfile'
+import { useTranslation } from '@/hooks/useTranslation'
 import { StudyMinutesInput } from './StudyMinutesInput'
 import { ReadingPagesInput } from './ReadingPagesInput'
 import { SpeakingTimer } from './SpeakingTimer'
@@ -17,6 +18,7 @@ import { CheckCircle2, Save } from 'lucide-react'
 export function DailyChecklist() {
   const { profile } = useProfile()
   const { log, loading, saveLog, saving } = useDailyLog()
+  const { t } = useTranslation()
 
   // Local state for form values
   const [formData, setFormData] = useState({
@@ -50,7 +52,27 @@ export function DailyChecklist() {
     }
   }, [log])
 
-  const handleSave = async () => {
+  // Calculate completion from form data (memoized)
+  // IMPORTANT: All hooks must be called before any conditional returns
+  const currentLog = useMemo(() => ({
+    ...log,
+    ...formData,
+    study_minutes: formData.study_minutes,
+    reading_pages: formData.reading_pages,
+    speaking_done: formData.speaking_done,
+    media_done: formData.media_done,
+    media_title: formData.media_title || null,
+    media_url: formData.media_url || null,
+    journal_entry: formData.journal_entry || null,
+    immersion_done: formData.immersion_done,
+    immersion_note: formData.immersion_note || null,
+    study_log_note: formData.study_log_note || null,
+  }), [log, formData])
+
+  const completionPercentage = useMemo(() => getCompletionPercentage(currentLog), [currentLog])
+  const isComplete = useMemo(() => isDailyLogComplete(currentLog), [currentLog])
+
+  const handleSave = useCallback(async () => {
     try {
       await saveLog({
         study_minutes: formData.study_minutes,
@@ -67,39 +89,20 @@ export function DailyChecklist() {
     } catch (error) {
       console.error('Failed to save:', error)
     }
-  }
+  }, [formData, saveLog])
 
   if (loading) {
     return <div className="text-center py-8 text-muted-foreground">Loading...</div>
   }
-
-  // Calculate completion from form data
-  const currentLog = {
-    ...log,
-    ...formData,
-    study_minutes: formData.study_minutes,
-    reading_pages: formData.reading_pages,
-    speaking_done: formData.speaking_done,
-    media_done: formData.media_done,
-    media_title: formData.media_title || null,
-    media_url: formData.media_url || null,
-    journal_entry: formData.journal_entry || null,
-    immersion_done: formData.immersion_done,
-    immersion_note: formData.immersion_note || null,
-    study_log_note: formData.study_log_note || null,
-  } as any
-
-  const completionPercentage = getCompletionPercentage(currentLog)
-  const isComplete = isDailyLogComplete(currentLog)
 
   return (
     <div className="space-y-6">
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
-            <CardTitle>Today's Checklist</CardTitle>
+            <CardTitle>{t.todaysChecklist}</CardTitle>
             <Badge variant={completionPercentage === 100 ? "default" : "secondary"}>
-              {completionPercentage}% Complete
+              {completionPercentage}% {t.complete}
             </Badge>
           </div>
         </CardHeader>
@@ -147,7 +150,7 @@ export function DailyChecklist() {
             <div className="mt-4 p-4 bg-[#f0f5ed] rounded-md flex items-center gap-2 border border-[#331011]/10">
               <CheckCircle2 className="h-5 w-5 text-[#2d5016]" />
               <span className="text-[#2d5016] font-medium">
-                All tasks completed! Great work!
+                {t.allTasksCompleted} {t.greatWork}
               </span>
             </div>
           )}
@@ -159,11 +162,11 @@ export function DailyChecklist() {
             className="min-w-[120px]"
           >
             {saving ? (
-              <>Saving...</>
+              <>{t.saving}</>
             ) : (
               <>
                 <Save className="h-4 w-4 mr-2" />
-                Save
+                {t.save}
               </>
             )}
           </Button>

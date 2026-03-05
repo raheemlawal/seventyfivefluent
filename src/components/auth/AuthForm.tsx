@@ -15,7 +15,6 @@ export function AuthForm({ mode, onSuccess }: AuthFormProps) {
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [signupSuccess, setSignupSuccess] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -24,17 +23,13 @@ export function AuthForm({ mode, onSuccess }: AuthFormProps) {
 
     try {
       if (mode === 'signup') {
-        const redirectUrl = window.location.origin
         const { error } = await supabase.auth.signUp({
           email,
           password,
-          options: {
-            emailRedirectTo: redirectUrl,
-          },
         })
         if (error) throw error
-        // Show success message instead of redirecting immediately
-        setSignupSuccess(true)
+        // User is automatically logged in after signup (email verification disabled)
+        onSuccess?.()
       } else {
         const { error } = await supabase.auth.signInWithPassword({
           email,
@@ -61,36 +56,7 @@ export function AuthForm({ mode, onSuccess }: AuthFormProps) {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        {signupSuccess ? (
-          <div className="space-y-4">
-            <div className="text-sm bg-primary/10 text-primary p-4 rounded-md border border-primary/20">
-              <p className="font-medium mb-2">Check your email!</p>
-              <p>
-                We've sent a confirmation link to <strong>{email}</strong>. 
-                Please click the link in the email to verify your account and continue.
-              </p>
-            </div>
-            <div className="text-xs text-muted-foreground space-y-2">
-              <p>Didn't receive the email?</p>
-              <ul className="list-disc list-inside space-y-1 ml-2">
-                <li>Check your spam folder</li>
-                <li>Make sure you entered the correct email address</li>
-              </ul>
-            </div>
-            <Button
-              variant="outline"
-              className="w-full"
-              onClick={() => {
-                setSignupSuccess(false)
-                setEmail('')
-                setPassword('')
-              }}
-            >
-              Back to Sign Up
-            </Button>
-          </div>
-        ) : (
-          <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <Input
@@ -125,7 +91,6 @@ export function AuthForm({ mode, onSuccess }: AuthFormProps) {
               {loading ? 'Loading...' : mode === 'signup' ? 'Sign Up' : 'Login'}
             </Button>
           </form>
-        )}
       </CardContent>
     </Card>
   )

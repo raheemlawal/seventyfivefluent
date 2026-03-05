@@ -1,18 +1,24 @@
-import { useEffect } from 'react'
+import { useEffect, Suspense, lazy } from 'react'
 import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom'
 import { AuthProvider } from '@/contexts/AuthContext'
 import { ProtectedRoute } from '@/components/ProtectedRoute'
+import { ProtectedAdminRoute } from '@/components/ProtectedAdminRoute'
 import { ErrorBoundary } from '@/components/ui/ErrorBoundary'
-import Landing from '@/pages/Landing'
-import Login from '@/pages/Login'
-import SignUp from '@/pages/SignUp'
-import ForgotPassword from '@/pages/ForgotPassword'
-import ResetPassword from '@/pages/ResetPassword'
-import Onboarding from '@/pages/Onboarding'
-import Dashboard from '@/pages/Dashboard'
-import History from '@/pages/History'
-import Progress from '@/pages/Progress'
 import { supabase } from '@/lib/supabase'
+
+// Lazy load pages for code splitting
+const Landing = lazy(() => import('@/pages/Landing'))
+const Login = lazy(() => import('@/pages/Login'))
+const SignUp = lazy(() => import('@/pages/SignUp'))
+const ForgotPassword = lazy(() => import('@/pages/ForgotPassword'))
+const ResetPassword = lazy(() => import('@/pages/ResetPassword'))
+const Onboarding = lazy(() => import('@/pages/Onboarding'))
+const Dashboard = lazy(() => import('@/pages/Dashboard'))
+const History = lazy(() => import('@/pages/History'))
+const Progress = lazy(() => import('@/pages/Progress'))
+const Library = lazy(() => import('@/pages/Library'))
+const AdminLogin = lazy(() => import('@/pages/admin/AdminLogin'))
+const AdminDashboard = lazy(() => import('@/pages/admin/AdminDashboard'))
 
 // Component to handle auth callbacks on any route
 function AuthCallbackHandler() {
@@ -62,46 +68,65 @@ function AppRoutes() {
   return (
     <>
       <AuthCallbackHandler />
-      <Routes>
-        <Route path="/" element={<Landing />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/signup" element={<SignUp />} />
-        <Route path="/forgot-password" element={<ForgotPassword />} />
-        <Route path="/reset-password" element={<ResetPassword />} />
-        <Route
-          path="/onboarding"
-          element={
-            <ProtectedRoute>
-              <Onboarding />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/dashboard"
-          element={
-            <ProtectedRoute>
-              <Dashboard />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/history"
-          element={
-            <ProtectedRoute>
-              <History />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/progress"
-          element={
-            <ProtectedRoute>
-              <Progress />
-            </ProtectedRoute>
-          }
-        />
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
+      <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div className="text-muted-foreground">Loading...</div></div>}>
+        <Routes>
+          <Route path="/" element={<Landing />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/signup" element={<SignUp />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
+          <Route
+            path="/onboarding"
+            element={
+              <ProtectedRoute>
+                <Onboarding />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/dashboard"
+            element={
+              <ProtectedRoute>
+                <Dashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/history"
+            element={
+              <ProtectedRoute>
+                <History />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/progress"
+            element={
+              <ProtectedRoute>
+                <Progress />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/library"
+            element={
+              <ProtectedRoute>
+                <Library />
+              </ProtectedRoute>
+            }
+          />
+          <Route path="/admin/login" element={<AdminLogin />} />
+          <Route
+            path="/admin"
+            element={
+              <ProtectedAdminRoute>
+                <AdminDashboard />
+              </ProtectedAdminRoute>
+            }
+          />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </Suspense>
     </>
   )
 }

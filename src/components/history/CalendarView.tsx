@@ -32,19 +32,19 @@ export function CalendarView() {
     <Card>
       <CardContent className="pt-6">
         <div className="space-y-4">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold">{format(currentMonth, 'MMMM yyyy')}</h3>
-            <div className="flex items-center gap-4 text-sm">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0 mb-4">
+            <h3 className="text-base sm:text-lg font-semibold">{format(currentMonth, 'MMMM yyyy')}</h3>
+            <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs sm:text-sm">
               <div className="flex items-center gap-2">
-                <div className="h-4 w-4 rounded bg-[#a8c090]" />
+                <div className="h-3 w-3 sm:h-4 sm:w-4 rounded bg-[#a8c090]" />
                 <span>Complete</span>
               </div>
               <div className="flex items-center gap-2">
-                <div className="h-4 w-4 rounded bg-[#e8d4b8]" />
+                <div className="h-3 w-3 sm:h-4 sm:w-4 rounded bg-[#e8d4b8]" />
                 <span>Partial</span>
               </div>
               <div className="flex items-center gap-2">
-                <div className="h-4 w-4 rounded bg-muted" />
+                <div className="h-3 w-3 sm:h-4 sm:w-4 rounded bg-muted" />
                 <span>None</span>
               </div>
             </div>

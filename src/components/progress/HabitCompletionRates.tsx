@@ -1,5 +1,6 @@
 import { useDailyLogs } from '@/hooks/useDailyLogs'
 import { useProfile } from '@/hooks/useProfile'
+import { useTranslation } from '@/hooks/useTranslation'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
 import type { HabitCompletion } from '@/types'
@@ -9,9 +10,10 @@ import { getTodayInTimezone } from '@/lib/date-utils'
 export function HabitCompletionRates() {
   const { logs, loading } = useDailyLogs()
   const { profile, loading: profileLoading } = useProfile()
+  const { t } = useTranslation()
 
   if (loading || profileLoading || !profile) {
-    return <div className="text-center py-8 text-muted-foreground">Loading...</div>
+    return <div className="text-center py-8 text-muted-foreground">{t.loading}</div>
   }
 
   // Calculate total days from start_date to today
@@ -31,43 +33,43 @@ export function HabitCompletionRates() {
 
   const habits: HabitCompletion[] = [
     {
-      habit: '60 Minutes Study',
+      habit: t.habit60MinutesStudy,
       completed: logs.filter(log => log.study_minutes >= 60).length,
       total: totalDays,
       percentage: 0,
     },
     {
-      habit: '5 Pages Reading',
+      habit: t.habit5PagesReading,
       completed: logs.filter(log => log.reading_pages >= 5).length,
       total: totalDays,
       percentage: 0,
     },
     {
-      habit: '5 Minutes Speaking',
+      habit: t.habit5MinutesSpeaking,
       completed: logs.filter(log => log.speaking_done).length,
       total: totalDays,
       percentage: 0,
     },
     {
-      habit: 'Media Consumption',
+      habit: t.habitMediaConsumption,
       completed: logs.filter(log => log.media_done).length,
       total: totalDays,
       percentage: 0,
     },
     {
-      habit: 'Journal Entry',
+      habit: t.habitJournalEntry,
       completed: logs.filter(log => log.journal_entry && log.journal_entry.trim() !== '').length,
       total: totalDays,
       percentage: 0,
     },
     {
-      habit: 'Immersion',
+      habit: t.habitImmersion,
       completed: logs.filter(log => log.immersion_done).length,
       total: totalDays,
       percentage: 0,
     },
     {
-      habit: 'Study Log',
+      habit: t.habitStudyLog,
       completed: logs.filter(log => log.study_log_note && log.study_log_note.trim() !== '').length,
       total: totalDays,
       percentage: 0,
@@ -81,7 +83,7 @@ export function HabitCompletionRates() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Habit Completion Rates</CardTitle>
+        <CardTitle>{t.habitCompletionRates}</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         {habits.map((habit) => (

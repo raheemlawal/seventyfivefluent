@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Select } from '@/components/ui/select'
-import { addYears, format } from 'date-fns'
+import { format } from 'date-fns'
 
 const COMMON_LANGUAGES = [
   'English', 'Spanish', 'French', 'German', 'Italian', 'Portuguese', 'Russian',
@@ -29,10 +29,10 @@ export default function Onboarding() {
   const [error, setError] = useState<string | null>(null)
 
   const [username, setUsername] = useState('')
-  const [primaryLanguage, setPrimaryLanguage] = useState('English')
+  const [primaryLanguage, setPrimaryLanguage] = useState('Spanish')
   const [targetLanguages, setTargetLanguages] = useState<string[]>([])
   const [timezone, setTimezone] = useState(Intl.DateTimeFormat().resolvedOptions().timeZone)
-  const [startDate, setStartDate] = useState(format(addYears(new Date(), 1), 'yyyy-MM-dd'))
+  const [startDate, setStartDate] = useState(format(new Date(), 'yyyy-MM-dd'))
   const [isPublic, setIsPublic] = useState(false)
 
   useEffect(() => {
@@ -42,9 +42,26 @@ export default function Onboarding() {
   }, [profile, navigate])
 
   const handleLanguageToggle = (lang: string) => {
-    setTargetLanguages(prev =>
-      prev.includes(lang) ? prev.filter(l => l !== lang) : [...prev, lang]
-    )
+    // Prevent selecting primary language as target
+    if (lang === primaryLanguage) {
+      setError('You cannot select your primary language as a target language')
+      return
+    }
+
+    setTargetLanguages(prev => {
+      if (prev.includes(lang)) {
+        // Allow deselecting
+        return prev.filter(l => l !== lang)
+      } else {
+        // Prevent selecting more than 5 languages
+        if (prev.length >= 5) {
+          setError('You can select a maximum of 5 target languages')
+          return prev
+        }
+        return [...prev, lang]
+      }
+    })
+    setError(null)
   }
 
   const handleSubmit = async () => {
@@ -57,6 +74,17 @@ export default function Onboarding() {
 
     if (targetLanguages.length === 0) {
       setError('Please select at least one target language')
+      return
+    }
+
+    if (targetLanguages.length > 5) {
+      setError('You can select a maximum of 5 target languages')
+      return
+    }
+
+    // Check if primary language is in target languages (shouldn't happen, but double-check)
+    if (targetLanguages.includes(primaryLanguage)) {
+      setError('Primary language cannot be selected as a target language')
       return
     }
 
@@ -93,7 +121,7 @@ export default function Onboarding() {
 
   return (
     <div className="min-h-screen bg-background p-4">
-      <div className="container mx-auto max-w-2xl py-8">
+      <div className="container mx-auto max-w-2xl py-4 md:py-8">
         <Card>
           <CardHeader>
             <CardTitle>Complete Your Profile</CardTitle>
@@ -121,29 +149,64 @@ export default function Onboarding() {
                     value={primaryLanguage}
                     onChange={(e) => setPrimaryLanguage(e.target.value)}
                   >
-                    {COMMON_LANGUAGES.map(lang => (
-                      <option key={lang} value={lang}>{lang}</option>
-                    ))}
+                    {COMMON_LANGUAGES.map(lang => {
+                      const isDisabled = lang !== 'Spanish'
+                      return (
+                        <option key={lang} value={lang} disabled={isDisabled}>
+                          {lang}{isDisabled ? ' (Coming soon)' : ''}
+                        </option>
+                      )
+                    })}
                   </Select>
+                  <p className="text-xs text-muted-foreground">
+                    Spanish is currently the only available UI language. More languages coming soon!
+                  </p>
                 </div>
                 <div className="space-y-2">
-                  <Label>Target Languages (Select one or more)</Label>
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-2 max-h-60 overflow-y-auto p-2 border rounded-md">
-                    {COMMON_LANGUAGES.map(lang => (
-                      <label
-                        key={lang}
-                        className="flex items-center space-x-2 cursor-pointer p-2 hover:bg-accent rounded"
-                      >
-                        <input
-                          type="checkbox"
-                          checked={targetLanguages.includes(lang)}
-                          onChange={() => handleLanguageToggle(lang)}
-                          className="rounded"
-                        />
-                        <span className="text-sm">{lang}</span>
-                      </label>
-                    ))}
+                  <div className="flex items-center justify-between">
+                    <Label>Target Languages (Select up to 5)</Label>
+                    <span className="text-sm text-muted-foreground">
+                      {targetLanguages.length}/5 selected
+                    </span>
                   </div>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-2 max-h-60 overflow-y-auto p-2 border rounded-md text-sm md:text-base">
+                    {COMMON_LANGUAGES.map(lang => {
+                      const isSelected = targetLanguages.includes(lang)
+                      const isPrimary = lang === primaryLanguage
+                      const isDisabled = !isSelected && targetLanguages.length >= 5
+                      const isPrimaryDisabled = isPrimary
+                      
+                      return (
+                        <label
+                          key={lang}
+                          className={`flex items-center space-x-2 p-2 rounded ${
+                            isPrimaryDisabled
+                              ? 'opacity-50 cursor-not-allowed'
+                              : isDisabled
+                              ? 'opacity-50 cursor-not-allowed'
+                              : 'cursor-pointer hover:bg-accent'
+                          }`}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={isSelected}
+                            onChange={() => handleLanguageToggle(lang)}
+                            disabled={isPrimaryDisabled || isDisabled}
+                            className="rounded"
+                          />
+                          <span className="text-sm">
+                            {lang}
+                            {isPrimary && <span className="text-xs text-muted-foreground ml-1">(Primary)</span>}
+                          </span>
+                        </label>
+                      )
+                    })}
+                  </div>
+                  {targetLanguages.length === 0 && (
+                    <p className="text-xs text-muted-foreground">
+                      Please select at least one target language
+                    </p>
+                  )}
                 </div>
                 <Button onClick={() => setStep(2)} className="w-full">
                   Next
@@ -175,7 +238,7 @@ export default function Onboarding() {
                     min={format(new Date(), 'yyyy-MM-dd')}
                   />
                   <p className="text-sm text-muted-foreground">
-                    Default: January 1st next year
+                    Default: Today
                   </p>
                 </div>
                 <div className="space-y-2">

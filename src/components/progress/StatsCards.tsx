@@ -1,4 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { useTranslation } from '@/hooks/useTranslation'
 import type { Profile } from '@/types'
 
 interface StatsCardsProps {
@@ -6,33 +7,35 @@ interface StatsCardsProps {
 }
 
 export function StatsCards({ profile }: StatsCardsProps) {
+  const { t } = useTranslation()
+  
   return (
-    <div className="grid gap-4 md:grid-cols-3">
+    <div className="grid gap-3 md:gap-4 grid-cols-1 sm:grid-cols-3">
       <Card>
         <CardHeader>
-          <CardTitle className="text-sm font-medium">Current Streak</CardTitle>
+          <CardTitle className="text-sm font-medium">{t.currentStreak}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="text-3xl font-bold">{profile.current_streak}</div>
-          <p className="text-xs text-muted-foreground mt-1">consecutive days</p>
+          <p className="text-xs text-muted-foreground mt-1">{t.consecutiveDays}</p>
         </CardContent>
       </Card>
       <Card>
         <CardHeader>
-          <CardTitle className="text-sm font-medium">Longest Streak</CardTitle>
+          <CardTitle className="text-sm font-medium">{t.longestStreak}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="text-3xl font-bold">{profile.longest_streak}</div>
-          <p className="text-xs text-muted-foreground mt-1">best streak</p>
+          <p className="text-xs text-muted-foreground mt-1">{t.bestStreak}</p>
         </CardContent>
       </Card>
       <Card>
         <CardHeader>
-          <CardTitle className="text-sm font-medium">Total Completed</CardTitle>
+          <CardTitle className="text-sm font-medium">{t.totalCompleted}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="text-3xl font-bold">{profile.total_completed}</div>
-          <p className="text-xs text-muted-foreground mt-1">days completed</p>
+          <p className="text-xs text-muted-foreground mt-1">{t.daysCompleted}</p>
         </CardContent>
       </Card>
     </div>
