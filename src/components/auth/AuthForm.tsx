@@ -15,6 +15,7 @@ export function AuthForm({ mode, onSuccess }: AuthFormProps) {
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [signupSuccess, setSignupSuccess] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -32,14 +33,16 @@ export function AuthForm({ mode, onSuccess }: AuthFormProps) {
           },
         })
         if (error) throw error
+        // Show success message instead of redirecting immediately
+        setSignupSuccess(true)
       } else {
         const { error } = await supabase.auth.signInWithPassword({
           email,
           password,
         })
         if (error) throw error
+        onSuccess?.()
       }
-      onSuccess?.()
     } catch (err: any) {
       setError(err.message || 'An error occurred')
     } finally {
@@ -58,41 +61,72 @@ export function AuthForm({ mode, onSuccess }: AuthFormProps) {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
-            <Input
-              id="email"
-              type="email"
-              placeholder="you@example.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              disabled={loading}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="password">Password</Label>
-            <Input
-              id="password"
-              type="password"
-              placeholder="••••••••"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              disabled={loading}
-              minLength={6}
-            />
-          </div>
-          {error && (
-            <div className="text-sm text-destructive bg-destructive/10 p-3 rounded-md">
-              {error}
+        {signupSuccess ? (
+          <div className="space-y-4">
+            <div className="text-sm bg-primary/10 text-primary p-4 rounded-md border border-primary/20">
+              <p className="font-medium mb-2">Check your email!</p>
+              <p>
+                We've sent a confirmation link to <strong>{email}</strong>. 
+                Please click the link in the email to verify your account and continue.
+              </p>
             </div>
-          )}
-          <Button type="submit" className="w-full" disabled={loading}>
-            {loading ? 'Loading...' : mode === 'signup' ? 'Sign Up' : 'Login'}
-          </Button>
-        </form>
+            <div className="text-xs text-muted-foreground space-y-2">
+              <p>Didn't receive the email?</p>
+              <ul className="list-disc list-inside space-y-1 ml-2">
+                <li>Check your spam folder</li>
+                <li>Make sure you entered the correct email address</li>
+                <li>Wait a few minutes and try again</li>
+              </ul>
+            </div>
+            <Button
+              variant="outline"
+              className="w-full"
+              onClick={() => {
+                setSignupSuccess(false)
+                setEmail('')
+                setPassword('')
+              }}
+            >
+              Back to Sign Up
+            </Button>
+          </div>
+        ) : (
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="you@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                disabled={loading}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="password">Password</Label>
+              <Input
+                id="password"
+                type="password"
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                disabled={loading}
+                minLength={6}
+              />
+            </div>
+            {error && (
+              <div className="text-sm text-destructive bg-destructive/10 p-3 rounded-md">
+                {error}
+              </div>
+            )}
+            <Button type="submit" className="w-full" disabled={loading}>
+              {loading ? 'Loading...' : mode === 'signup' ? 'Sign Up' : 'Login'}
+            </Button>
+          </form>
+        )}
       </CardContent>
     </Card>
   )
