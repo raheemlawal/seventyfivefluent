@@ -5,18 +5,36 @@ import { useProfile } from '@/hooks/useProfile'
 import { getTodayInTimezone } from '@/lib/date-utils'
 import type { DailyLog, DailyLogInsert, DailyLogUpdate } from '@/types'
 
-export function useDailyLog(date?: string) {
-  const { user } = useAuth()
-  const { profile } = useProfile()
+export function useDailyLog(date?: string, language?: string | null) {
+  const { user, loading: authLoading, session } = useAuth()
+  const { profile, loading: profileLoading } = useProfile()
   const [log, setLog] = useState<DailyLog | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<Error | null>(null)
   const [saving, setSaving] = useState(false)
 
   const targetDate = date || (profile ? getTodayInTimezone(profile.timezone) : '')
+  
+  // Determine which language to use:
+  // 1. Explicit language parameter
+  // 2. If user has only one target language, use that
+  // 3. Otherwise, use null (for backward compatibility with single-log-per-day)
+  const targetLanguage = language !== undefined 
+    ? language 
+    : (profile?.target_languages?.length === 1 ? profile.target_languages[0] : null)
 
   useEffect(() => {
-    if (!user || !targetDate) {
+    // Don't fetch if auth is loading, profile is loading, no session, no user, no targetDate, or no profile
+    // Also check that session has a valid access_token
+    if (
+      authLoading || 
+      profileLoading || 
+      !session || 
+      !session.access_token || 
+      !user || 
+      !targetDate || 
+      !profile
+    ) {
       setLog(null)
       setLoading(false)
       return
@@ -24,44 +42,29 @@ export function useDailyLog(date?: string) {
 
     async function fetchLog() {
       try {
-        // Retry logic for 406 errors
-        let retries = 0
-        const maxRetries = 3
+        let query = supabase
+          .from('daily_logs')
+          .select('*')
+          .eq('user_id', user!.id)
+          .eq('log_date', targetDate)
 
-        while (retries < maxRetries) {
-          const { data, error } = await supabase
-            .from('daily_logs')
-            .select('*')
-            .eq('user_id', user!.id)
-            .eq('log_date', targetDate)
-            .single()
-
-          if (error) {
-            // PGRST116 is "not found" which is fine
-            if (error.code === 'PGRST116') {
-              setLog(null)
-              return
-            } else if (error.code === '406' || error.message?.includes('406') || error.message?.includes('Not Acceptable')) {
-              // Retry on 406 errors
-              retries++
-              if (retries < maxRetries) {
-                // Exponential backoff: 1s, 2s, 3s
-                await new Promise(resolve => setTimeout(resolve, 1000 * retries))
-                continue
-              }
-              // After max retries, log and continue
-              console.error('Supabase 406 error after retries:', error)
-              setLog(null)
-              return
-            } else {
-              throw error
-            }
-          }
-
-          // Success - set the log and return
-          setLog(data || null)
-          return
+        // Filter by language if specified
+        if (targetLanguage !== null && targetLanguage !== undefined) {
+          query = query.eq('language', targetLanguage)
+        } else {
+          // For backward compatibility: if no language specified, get log with null language
+          // (old logs don't have language set)
+          query = query.is('language', null)
         }
+
+        const { data, error } = await query.maybeSingle()
+
+        if (error) {
+          throw error
+        }
+
+        // maybeSingle() returns null when no rows found, which is what we want
+        setLog(data || null)
       } catch (err) {
         setError(err as Error)
       } finally {
@@ -70,7 +73,7 @@ export function useDailyLog(date?: string) {
     }
 
     fetchLog()
-  }, [user, targetDate])
+  }, [user, session, targetDate, targetLanguage, profile, authLoading, profileLoading])
 
   const saveLog = useCallback(async (updates: Partial<DailyLogUpdate>) => {
     if (!user || !targetDate) return
@@ -95,6 +98,7 @@ export function useDailyLog(date?: string) {
         const newLog: DailyLogInsert = {
           user_id: user.id,
           log_date: targetDate,
+          language: targetLanguage || null,
           ...updates,
         }
 
@@ -113,7 +117,7 @@ export function useDailyLog(date?: string) {
     } finally {
       setSaving(false)
     }
-  }, [user, targetDate, log])
+  }, [user, targetDate, targetLanguage, log])
 
   return { log, loading, error, saving, saveLog, refetch: () => {
     setLoading(true)

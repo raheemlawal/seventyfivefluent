@@ -1,17 +1,19 @@
 import { useDailyLogs } from '@/hooks/useDailyLogs'
 import { useProfile } from '@/hooks/useProfile'
+import { useTranslation } from '@/hooks/useTranslation'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { isDailyLogComplete } from '@/lib/daily-log-utils'
+import { isDailyLogComplete, getCompletionPercentage } from '@/lib/daily-log-utils'
 import { format, parseISO, eachDayOfInterval, subDays } from 'date-fns'
-import { getTodayInTimezone } from '@/lib/date-utils'
+import { getTodayInTimezone, getLocale } from '@/lib/date-utils'
 
 export function StreakVisualization() {
   const { profile } = useProfile()
+  const { t, language: uiLanguage } = useTranslation()
   const today = profile ? getTodayInTimezone(profile.timezone) : ''
   const { logs, loading } = useDailyLogs()
 
   if (loading) {
-    return <div className="text-center py-8 text-muted-foreground">Loading...</div>
+    return <div className="text-center py-8 text-muted-foreground">{t.loading}</div>
   }
 
   // Show last 30 days
@@ -21,13 +23,27 @@ export function StreakVisualization() {
 
   const getLogForDate = (date: Date) => {
     const dateStr = format(date, 'yyyy-MM-dd')
-    return logs.find(log => log.log_date === dateStr)
+    // For backward compatibility: if no language filter, show any log for that date
+    // This allows old logs (without language) to still show
+    // If multiple logs exist for a date, prefer the most complete one
+    const dateLogs = logs.filter(log => log.log_date === dateStr)
+    if (dateLogs.length === 0) return undefined
+    // Return the most complete log, or the first one if all are equal
+    return dateLogs.reduce((best, current) => {
+      const bestComplete = isDailyLogComplete(best)
+      const currentComplete = isDailyLogComplete(current)
+      if (currentComplete && !bestComplete) return current
+      if (bestComplete && !currentComplete) return best
+      const bestPct = getCompletionPercentage(best)
+      const currentPct = getCompletionPercentage(current)
+      return currentPct > bestPct ? current : best
+    })
   }
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>30-Day Streak View</CardTitle>
+        <CardTitle>{t.streakView30Days}</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="space-y-2">
@@ -48,7 +64,10 @@ export function StreakVisualization() {
                       ? 'bg-[#e8d4b8]'
                       : 'bg-muted'
                   } ${isToday ? 'ring-2 ring-primary' : ''}`}
-                  title={format(day, 'MMM d, yyyy')}
+                  title={(() => {
+                    const formatted = format(day, 'MMM d, yyyy', { locale: getLocale(uiLanguage) })
+                    return uiLanguage === 'Spanish' ? formatted.charAt(0).toUpperCase() + formatted.slice(1) : formatted
+                  })()}
                 />
               )
             })}
@@ -56,15 +75,15 @@ export function StreakVisualization() {
           <div className="flex items-center justify-center gap-4 text-xs text-muted-foreground mt-4">
             <div className="flex items-center gap-2">
               <div className="h-3 w-3 rounded bg-[#a8c090]" />
-              <span>Complete</span>
+              <span>{t.complete}</span>
             </div>
             <div className="flex items-center gap-2">
               <div className="h-3 w-3 rounded bg-[#e8d4b8]" />
-              <span>Partial</span>
+              <span>{t.partial}</span>
             </div>
             <div className="flex items-center gap-2">
               <div className="h-3 w-3 rounded bg-muted" />
-              <span>None</span>
+              <span>{t.none}</span>
             </div>
           </div>
         </div>

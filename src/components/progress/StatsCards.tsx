@@ -9,6 +9,10 @@ interface StatsCardsProps {
 export function StatsCards({ profile }: StatsCardsProps) {
   const { t } = useTranslation()
   
+  // Note: Stats cards show overall profile stats (not language-specific)
+  // Language-specific stats would require calculating from logs, which is more complex
+  // For now, we show overall stats but could add language breakdown in the future
+  
   return (
     <div className="grid gap-3 md:gap-4 grid-cols-1 sm:grid-cols-3">
       <Card>

@@ -63,6 +63,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [])
 
   const signOut = useCallback(async () => {
+    // Clear stored language preference on sign out
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.removeItem('75fluent_ui_language')
+      } catch {
+        // Ignore localStorage errors
+      }
+    }
     await supabase.auth.signOut()
   }, [])
 

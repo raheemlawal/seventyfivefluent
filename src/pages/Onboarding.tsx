@@ -29,7 +29,7 @@ export default function Onboarding() {
   const [error, setError] = useState<string | null>(null)
 
   const [username, setUsername] = useState('')
-  const [primaryLanguage, setPrimaryLanguage] = useState('Spanish')
+  const [primaryLanguage, setPrimaryLanguage] = useState('English')
   const [targetLanguages, setTargetLanguages] = useState<string[]>([])
   const [timezone, setTimezone] = useState(Intl.DateTimeFormat().resolvedOptions().timeZone)
   const [startDate, setStartDate] = useState(format(new Date(), 'yyyy-MM-dd'))
@@ -88,6 +88,14 @@ export default function Onboarding() {
       return
     }
 
+    // Validate that primary language is supported
+    // This only affects NEW users - existing users already have their profiles
+    const supportedLanguages = ['English', 'Spanish', 'Dutch', 'Danish', 'Italian']
+    if (!supportedLanguages.includes(primaryLanguage)) {
+      setError('Please select a supported UI language')
+      return
+    }
+
     setLoading(true)
     setError(null)
 
@@ -103,6 +111,16 @@ export default function Onboarding() {
       })
 
       if (error) throw error
+      
+      // Store language preference immediately so translations are available on next page load
+      if (typeof window !== 'undefined') {
+        try {
+          localStorage.setItem('75fluent_ui_language', primaryLanguage)
+        } catch {
+          // Ignore localStorage errors
+        }
+      }
+      
       navigate('/dashboard')
     } catch (err: any) {
       setError(err.message || 'Failed to create profile')
@@ -150,7 +168,8 @@ export default function Onboarding() {
                     onChange={(e) => setPrimaryLanguage(e.target.value)}
                   >
                     {COMMON_LANGUAGES.map(lang => {
-                      const isDisabled = lang !== 'Spanish'
+                      const supportedLanguages = ['English', 'Spanish', 'Dutch', 'Danish', 'Italian']
+                      const isDisabled = !supportedLanguages.includes(lang)
                       return (
                         <option key={lang} value={lang} disabled={isDisabled}>
                           {lang}{isDisabled ? ' (Coming soon)' : ''}
@@ -159,7 +178,7 @@ export default function Onboarding() {
                     })}
                   </Select>
                   <p className="text-xs text-muted-foreground">
-                    Spanish is currently the only available UI language. More languages coming soon!
+                    English, Spanish, Dutch, Danish, and Italian are currently available. More languages coming soon!
                   </p>
                 </div>
                 <div className="space-y-2">

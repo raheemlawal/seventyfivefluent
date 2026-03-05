@@ -2,6 +2,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Progress } from '@/components/ui/progress'
 import { Card, CardContent } from '@/components/ui/card'
+import { useTranslation } from '@/hooks/useTranslation'
 
 interface StudyMinutesInputProps {
   value: number
@@ -9,6 +10,7 @@ interface StudyMinutesInputProps {
 }
 
 export function StudyMinutesInput({ value, onChange }: StudyMinutesInputProps) {
+  const { t } = useTranslation()
   const goal = 60
   const percentage = Math.min((value / goal) * 100, 100)
 
@@ -17,9 +19,9 @@ export function StudyMinutesInput({ value, onChange }: StudyMinutesInputProps) {
       <CardContent className="pt-6">
         <div className="space-y-2">
           <div className="flex items-center justify-between">
-            <Label htmlFor="study-minutes">Study Minutes</Label>
+            <Label htmlFor="study-minutes">{t.studyMinutes}</Label>
             <span className="text-sm text-muted-foreground">
-              {value} / {goal} min
+              {value} / {goal} {t.min}
             </span>
           </div>
           <Input
@@ -33,7 +35,7 @@ export function StudyMinutesInput({ value, onChange }: StudyMinutesInputProps) {
           />
           <Progress value={percentage} className="h-2" />
           {value >= goal && (
-            <p className="text-sm text-[#2d5016]">✓ Goal reached!</p>
+            <p className="text-sm text-[#2d5016]">{t.goalReached}</p>
           )}
         </div>
       </CardContent>

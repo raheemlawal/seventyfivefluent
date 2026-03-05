@@ -56,13 +56,13 @@ export default function Library() {
         <Card>
           <CardHeader>
             <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-              <CardTitle>Your Content</CardTitle>
+              <CardTitle>{t.yourContent}</CardTitle>
               <div className="w-full sm:w-auto sm:min-w-[300px]">
-                <Label htmlFor="search" className="sr-only">Search</Label>
+                <Label htmlFor="search" className="sr-only">{t.searchPlaceholder}</Label>
                 <Input
                   id="search"
                   type="text"
-                  placeholder="Search entries..."
+                  placeholder={t.searchPlaceholder}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="w-full"

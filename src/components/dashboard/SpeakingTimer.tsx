@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent } from '@/components/ui/card'
+import { useTranslation } from '@/hooks/useTranslation'
 import { Play, Pause, Square } from 'lucide-react'
 
 interface SpeakingTimerProps {
@@ -11,6 +12,7 @@ interface SpeakingTimerProps {
 }
 
 export function SpeakingTimer({ done, onDoneChange }: SpeakingTimerProps) {
+  const { t } = useTranslation()
   const [seconds, setSeconds] = useState(0)
   const [isRunning, setIsRunning] = useState(false)
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
@@ -61,7 +63,7 @@ export function SpeakingTimer({ done, onDoneChange }: SpeakingTimerProps) {
       <CardContent className="pt-6">
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <Label>5 Minutes of Speaking</Label>
+            <Label>{t.minutesOfSpeaking}</Label>
             <div className="flex items-center space-x-2">
               <Checkbox
                 id="speaking-done"
@@ -74,7 +76,7 @@ export function SpeakingTimer({ done, onDoneChange }: SpeakingTimerProps) {
                 }}
               />
               <Label htmlFor="speaking-done" className="cursor-pointer">
-                Done
+                {t.done}
               </Label>
             </div>
           </div>

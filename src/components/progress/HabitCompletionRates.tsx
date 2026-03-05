@@ -31,46 +31,89 @@ export function HabitCompletionRates() {
   
   const totalDays = Math.max(1, differenceInDays(today, startDate) + 1) // +1 to include both start and end days
 
+  // Group logs by date and aggregate across languages
+  const logsByDate = new Map<string, typeof logs>()
+  logs.forEach(log => {
+    if (!logsByDate.has(log.log_date)) {
+      logsByDate.set(log.log_date, [])
+    }
+    logsByDate.get(log.log_date)!.push(log)
+  })
+
+  // Calculate habit completions by aggregating across languages per day
+  let studyMinutesCompleted = 0
+  let readingPagesCompleted = 0
+  let speakingCompleted = 0
+  let mediaCompleted = 0
+  let journalCompleted = 0
+  let immersionCompleted = 0
+  let studyLogCompleted = 0
+
+  logsByDate.forEach((dateLogs) => {
+    // Sum study minutes across all languages for this date
+    const totalStudyMinutes = dateLogs.reduce((sum, log) => sum + (log.study_minutes || 0), 0)
+    if (totalStudyMinutes >= 60) studyMinutesCompleted++
+
+    // Sum reading pages across all languages for this date
+    const totalReadingPages = dateLogs.reduce((sum, log) => sum + (log.reading_pages || 0), 0)
+    if (totalReadingPages >= 5) readingPagesCompleted++
+
+    // Check if ANY language has speaking done for this date
+    if (dateLogs.some(log => log.speaking_done)) speakingCompleted++
+
+    // Check if ANY language has media done for this date
+    if (dateLogs.some(log => log.media_done)) mediaCompleted++
+
+    // Check if ANY language has journal entry for this date
+    if (dateLogs.some(log => log.journal_entry && log.journal_entry.trim() !== '')) journalCompleted++
+
+    // Check if ANY language has immersion done for this date
+    if (dateLogs.some(log => log.immersion_done)) immersionCompleted++
+
+    // Check if ANY language has study log for this date
+    if (dateLogs.some(log => log.study_log_note && log.study_log_note.trim() !== '')) studyLogCompleted++
+  })
+
   const habits: HabitCompletion[] = [
     {
       habit: t.habit60MinutesStudy,
-      completed: logs.filter(log => log.study_minutes >= 60).length,
+      completed: studyMinutesCompleted,
       total: totalDays,
       percentage: 0,
     },
     {
       habit: t.habit5PagesReading,
-      completed: logs.filter(log => log.reading_pages >= 5).length,
+      completed: readingPagesCompleted,
       total: totalDays,
       percentage: 0,
     },
     {
       habit: t.habit5MinutesSpeaking,
-      completed: logs.filter(log => log.speaking_done).length,
+      completed: speakingCompleted,
       total: totalDays,
       percentage: 0,
     },
     {
       habit: t.habitMediaConsumption,
-      completed: logs.filter(log => log.media_done).length,
+      completed: mediaCompleted,
       total: totalDays,
       percentage: 0,
     },
     {
       habit: t.habitJournalEntry,
-      completed: logs.filter(log => log.journal_entry && log.journal_entry.trim() !== '').length,
+      completed: journalCompleted,
       total: totalDays,
       percentage: 0,
     },
     {
       habit: t.habitImmersion,
-      completed: logs.filter(log => log.immersion_done).length,
+      completed: immersionCompleted,
       total: totalDays,
       percentage: 0,
     },
     {
       habit: t.habitStudyLog,
-      completed: logs.filter(log => log.study_log_note && log.study_log_note.trim() !== '').length,
+      completed: studyLogCompleted,
       total: totalDays,
       percentage: 0,
     },

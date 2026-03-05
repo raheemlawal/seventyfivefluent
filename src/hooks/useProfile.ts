@@ -4,7 +4,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import type { Profile } from '@/types'
 
 export function useProfile() {
-  const { user } = useAuth()
+  const { user, loading: authLoading, session } = useAuth()
   const [profile, setProfile] = useState<Profile | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<Error | null>(null)
@@ -15,57 +15,26 @@ export function useProfile() {
     setError(null)
     setLoading(true)
 
-    if (!user) {
+    // Don't fetch if auth is loading, no user, no session, or no access_token
+    if (authLoading || !user || !session || !session.access_token) {
       setLoading(false)
       return
     }
 
     async function fetchProfile() {
       try {
-        // Ensure we have a session before making the request
-        const { data: { session } } = await supabase.auth.getSession()
-        if (!session) {
-          setLoading(false)
-          return
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', user!.id)
+          .maybeSingle() // Use maybeSingle() instead of single() - returns null instead of error when no rows
+
+        if (error) {
+          throw error
         }
 
-        // Retry logic for 406 errors
-        let retries = 0
-        const maxRetries = 3
-
-        while (retries < maxRetries) {
-          const { data, error } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq('id', user!.id)
-            .single()
-
-          if (error) {
-            // If it's a "not found" error (PGRST116), that's expected - user hasn't completed onboarding
-            if (error.code === 'PGRST116') {
-              setProfile(null)
-              return
-            } else if (error.code === '406' || error.message?.includes('406') || error.message?.includes('Not Acceptable')) {
-              // Retry on 406 errors
-              retries++
-              if (retries < maxRetries) {
-                // Exponential backoff: 1s, 2s, 3s
-                await new Promise(resolve => setTimeout(resolve, 1000 * retries))
-                continue
-              }
-              // After max retries, log and continue
-              console.error('Supabase 406 error after retries:', error)
-              setProfile(null)
-              return
-            } else {
-              throw error
-            }
-          } else {
-            // Success - set the profile and return
-            setProfile(data)
-            return
-          }
-        }
+        // maybeSingle() returns null when no rows found (user hasn't completed onboarding)
+        setProfile(data || null)
       } catch (err) {
         setError(err as Error)
       } finally {
@@ -74,7 +43,7 @@ export function useProfile() {
     }
 
     fetchProfile()
-  }, [user])
+  }, [user, session, authLoading])
 
   const updateProfile = async (updates: Partial<Profile>) => {
     if (!user) return
@@ -89,6 +58,16 @@ export function useProfile() {
 
       if (error) throw error
       setProfile(data)
+      
+      // Update localStorage if primary_language changed
+      if (updates.primary_language && typeof window !== 'undefined') {
+        try {
+          localStorage.setItem('75fluent_ui_language', updates.primary_language)
+        } catch {
+          // Ignore localStorage errors
+        }
+      }
+      
       return data
     } catch (err) {
       setError(err as Error)
@@ -98,4 +77,3 @@ export function useProfile() {
 
   return { profile, loading, error, updateProfile }
 }
-

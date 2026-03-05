@@ -2,6 +2,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Progress } from '@/components/ui/progress'
 import { Card, CardContent } from '@/components/ui/card'
+import { useTranslation } from '@/hooks/useTranslation'
 
 interface ReadingPagesInputProps {
   value: number
@@ -9,6 +10,7 @@ interface ReadingPagesInputProps {
 }
 
 export function ReadingPagesInput({ value, onChange }: ReadingPagesInputProps) {
+  const { t } = useTranslation()
   const goal = 5
   const percentage = Math.min((value / goal) * 100, 100)
 
@@ -17,9 +19,9 @@ export function ReadingPagesInput({ value, onChange }: ReadingPagesInputProps) {
       <CardContent className="pt-6">
         <div className="space-y-2">
           <div className="flex items-center justify-between">
-            <Label htmlFor="reading-pages">Reading Pages</Label>
+            <Label htmlFor="reading-pages">{t.readingPages}</Label>
             <span className="text-sm text-muted-foreground">
-              {value} / {goal} pages
+              {value} / {goal} {t.pages}
             </span>
           </div>
           <Input
@@ -33,7 +35,7 @@ export function ReadingPagesInput({ value, onChange }: ReadingPagesInputProps) {
           />
           <Progress value={percentage} className="h-2" />
           {value >= goal && (
-            <p className="text-sm text-[#2d5016]">✓ Goal reached!</p>
+            <p className="text-sm text-[#2d5016]">{t.goalReached}</p>
           )}
         </div>
       </CardContent>

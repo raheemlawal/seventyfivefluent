@@ -9,7 +9,7 @@ import { formatDate, getTodayInTimezone } from '@/lib/date-utils'
 
 export default function Dashboard() {
   const { profile, loading } = useProfile()
-  const { t } = useTranslation()
+  const { t, language } = useTranslation()
   const navigate = useNavigate()
 
   useEffect(() => {
@@ -40,7 +40,7 @@ export default function Dashboard() {
         <div>
           <h1 className="text-2xl md:text-3xl font-bold mb-2">{t.dashboardTitle}</h1>
           <p className="text-sm md:text-base text-muted-foreground">
-            {formatDate(today, 'EEEE, MMMM d, yyyy')}
+            {formatDate(today, 'EEEE, MMMM d, yyyy', language)}
           </p>
         </div>
 

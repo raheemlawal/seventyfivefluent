@@ -98,12 +98,29 @@ export function LanguageStats() {
             <p className="text-sm text-muted-foreground">No data available</p>
           ) : (
             <div className="space-y-2">
-              {topUILanguages.map((item) => (
-                <div key={item.language} className="flex items-center justify-between">
-                  <span className="text-sm">{item.language}</span>
-                  <span className="text-sm font-medium">{item.count}</span>
-                </div>
-              ))}
+              {topUILanguages.map((item) => {
+                const supportedLanguages = ['English', 'Spanish', 'Dutch', 'Danish', 'Italian']
+                const isSupported = supportedLanguages.includes(item.language)
+                return (
+                  <div key={item.language} className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm">{item.language}</span>
+                      {!isSupported && (
+                        <span className="text-xs px-1.5 py-0.5 bg-orange-100 text-orange-700 rounded">
+                          Legacy
+                        </span>
+                      )}
+                    </div>
+                    <span className="text-sm font-medium">{item.count}</span>
+                  </div>
+                )
+              })}
+              {topUILanguages.some(item => !['English', 'Spanish', 'Dutch', 'Danish', 'Italian'].includes(item.language)) && (
+                <p className="text-xs text-muted-foreground mt-3 pt-3 border-t">
+                  Note: Legacy languages are from before UI language support was expanded.
+                  These users see English as fallback in the app.
+                </p>
+              )}
             </div>
           )}
         </CardContent>

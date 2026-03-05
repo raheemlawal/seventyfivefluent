@@ -61,6 +61,7 @@ export interface Database {
           id: string
           user_id: string
           log_date: string
+          language: string | null
           study_minutes: number
           reading_pages: number
           speaking_done: boolean
@@ -78,6 +79,7 @@ export interface Database {
           id?: string
           user_id: string
           log_date: string
+          language?: string | null
           study_minutes?: number
           reading_pages?: number
           speaking_done?: boolean
@@ -95,6 +97,7 @@ export interface Database {
           id?: string
           user_id?: string
           log_date?: string
+          language?: string | null
           study_minutes?: number
           reading_pages?: number
           speaking_done?: boolean

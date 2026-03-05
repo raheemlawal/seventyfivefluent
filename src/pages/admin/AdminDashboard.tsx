@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/contexts/AuthContext'
 import { useNavigate } from 'react-router-dom'
-import { LogOut, Users, Languages, Globe } from 'lucide-react'
+import { LogOut, Users, Languages, Globe, UserCheck, UserX } from 'lucide-react'
 import { LanguageStats } from '@/components/admin/LanguageStats'
 
 export default function AdminDashboard() {
@@ -14,6 +14,8 @@ export default function AdminDashboard() {
   const [stats, setStats] = useState({
     totalUsers: 0,
     totalAuthUsers: 0,
+    usersWithProfiles: 0,
+    usersWithoutProfiles: 0,
     uniqueLanguagesStudied: 0,
     uiLanguages: 0,
   })
@@ -22,14 +24,18 @@ export default function AdminDashboard() {
   useEffect(() => {
     async function fetchStats() {
       try {
+        // Get auth user statistics from database function
+        const { data: authStats, error: authError } = await supabase
+          .rpc('get_auth_user_stats')
+
+        if (authError) {
+          console.error('Error fetching auth stats:', authError)
+        }
+
         // Get total users from profiles table (users who completed onboarding)
         const { count: userCount } = await supabase
           .from('profiles')
           .select('*', { count: 'exact', head: true })
-
-        // Get total auth users (all users who signed up, including those who didn't complete onboarding)
-        // Note: This requires querying auth.users which may not be accessible via RLS
-        // For now, we'll just show profiles count and note the difference
 
         // Get all profiles to analyze languages
         const { data: profiles } = await supabase
@@ -57,26 +63,32 @@ export default function AdminDashboard() {
 
           setStats({
             totalUsers: userCount || 0,
-            totalAuthUsers: userCount || 0, // Will be updated if we can access auth.users
+            totalAuthUsers: authStats?.[0]?.total_auth_users || 0,
+            usersWithProfiles: userCount || 0,
+            usersWithoutProfiles: (authStats?.[0]?.total_auth_users || 0) - (userCount || 0),
             uniqueLanguagesStudied: allTargetLanguages.size,
             uiLanguages: uiLanguages.size,
           })
         } else {
           setStats({
             totalUsers: userCount || 0,
-            totalAuthUsers: userCount || 0,
+            totalAuthUsers: authStats?.[0]?.total_auth_users || 0,
+            usersWithProfiles: userCount || 0,
+            usersWithoutProfiles: (authStats?.[0]?.total_auth_users || 0) - (userCount || 0),
             uniqueLanguagesStudied: 0,
             uiLanguages: 0,
           })
         }
       } catch (error) {
         console.error('Error fetching admin stats:', error)
-      setStats({
-        totalUsers: 0,
-        totalAuthUsers: 0,
-        uniqueLanguagesStudied: 0,
-        uiLanguages: 0,
-      })
+        setStats({
+          totalUsers: 0,
+          totalAuthUsers: 0,
+          usersWithProfiles: 0,
+          usersWithoutProfiles: 0,
+          uniqueLanguagesStudied: 0,
+          uiLanguages: 0,
+        })
       } finally {
         setLoading(false)
       }
@@ -89,6 +101,8 @@ export default function AdminDashboard() {
     await signOut()
     navigate('/admin/login', { replace: true })
   }
+
+  const usersWithoutProfiles = stats.usersWithoutProfiles
 
   return (
     <div className="min-h-screen bg-background">
@@ -116,20 +130,34 @@ export default function AdminDashboard() {
             <div className="text-center py-8 text-muted-foreground">Loading...</div>
           ) : (
             <>
-              <div className="grid gap-4 md:grid-cols-3">
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                 <Card>
                   <CardHeader>
                     <div className="flex items-center gap-2">
                       <Users className="h-5 w-5 text-primary" />
-                      <CardTitle className="text-sm font-medium">Total Users</CardTitle>
+                      <CardTitle className="text-sm font-medium">Total Accounts</CardTitle>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-3xl font-bold">{stats.totalAuthUsers}</div>
+                    <p className="text-xs text-muted-foreground mt-1">all registered accounts</p>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardHeader>
+                    <div className="flex items-center gap-2">
+                      <UserCheck className="h-5 w-5 text-primary" />
+                      <CardTitle className="text-sm font-medium">Active Users</CardTitle>
                     </div>
                   </CardHeader>
                   <CardContent>
                     <div className="text-3xl font-bold">{stats.totalUsers}</div>
-                    <p className="text-xs text-muted-foreground mt-1">users with profiles</p>
-                    <p className="text-xs text-muted-foreground mt-1 italic">
-                      (Note: Only counts users who completed onboarding. Check Supabase Auth for all registered users.)
-                    </p>
+                    <p className="text-xs text-muted-foreground mt-1">completed onboarding</p>
+                    {usersWithoutProfiles > 0 && (
+                      <p className="text-xs text-orange-600 mt-1">
+                        {usersWithoutProfiles} never completed onboarding
+                      </p>
+                    )}
                   </CardContent>
                 </Card>
                 <Card>
@@ -157,6 +185,59 @@ export default function AdminDashboard() {
                   </CardContent>
                 </Card>
               </div>
+
+              {/* User States Breakdown */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>User States Breakdown</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {/* Total Accounts */}
+                    <div className="border-b pb-3">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="font-semibold">Total Accounts</span>
+                        <span className="text-2xl font-bold">{stats.totalAuthUsers}</span>
+                      </div>
+                      <p className="text-xs text-muted-foreground">All users who signed up</p>
+                    </div>
+
+                    {/* Profile Status */}
+                    <div className="grid gap-4 md:grid-cols-2">
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm font-medium">Active Users</span>
+                          <span className="text-lg font-bold text-green-600">{stats.usersWithProfiles}</span>
+                        </div>
+                        <p className="text-xs text-muted-foreground">Completed onboarding</p>
+                        <p className="text-xs text-muted-foreground mt-2">
+                          These users have created profiles and can use the full app.
+                        </p>
+                      </div>
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm font-medium">Inactive Users</span>
+                          <span className="text-lg font-bold text-orange-600">{usersWithoutProfiles}</span>
+                        </div>
+                        <p className="text-xs text-muted-foreground">Never completed onboarding</p>
+                        <p className="text-xs text-muted-foreground mt-2">
+                          These users signed up but never finished the onboarding process.
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Summary */}
+                    <div className="border-t pt-3 bg-muted/30 p-3 rounded-md">
+                      <p className="text-xs font-medium mb-2">Summary:</p>
+                      <div className="space-y-1 text-xs text-muted-foreground">
+                        <p>• {stats.totalAuthUsers} total accounts created</p>
+                        <p>• {stats.usersWithProfiles} active users ({Math.round((stats.usersWithProfiles / stats.totalAuthUsers) * 100) || 0}% completion rate)</p>
+                        <p>• {usersWithoutProfiles} inactive users ({Math.round((usersWithoutProfiles / stats.totalAuthUsers) * 100) || 0}% never completed onboarding)</p>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
 
               <LanguageStats />
             </>

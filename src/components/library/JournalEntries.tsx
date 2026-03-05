@@ -9,7 +9,7 @@ interface JournalEntriesProps {
 }
 
 export function JournalEntries({ logs }: JournalEntriesProps) {
-  const { t } = useTranslation()
+  const { t, language } = useTranslation()
   
   if (logs.length === 0) {
     return (
@@ -28,7 +28,7 @@ export function JournalEntries({ logs }: JournalEntriesProps) {
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
               <div className="text-sm font-medium text-muted-foreground">
-                {formatDate(log.log_date, 'EEEE, MMMM d, yyyy')}
+                {formatDate(log.log_date, 'EEEE, MMMM d, yyyy', language)}
               </div>
             </div>
           </CardHeader>
