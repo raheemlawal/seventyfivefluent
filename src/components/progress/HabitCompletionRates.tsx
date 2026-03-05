@@ -15,8 +15,18 @@ export function HabitCompletionRates() {
   }
 
   // Calculate total days from start_date to today
+  if (!profile.start_date) {
+    return <div className="text-center py-8 text-muted-foreground">No start date set</div>
+  }
+  
   const startDate = new Date(profile.start_date)
   const today = new Date(getTodayInTimezone(profile.timezone))
+  
+  // Validate dates
+  if (isNaN(startDate.getTime()) || isNaN(today.getTime())) {
+    return <div className="text-center py-8 text-muted-foreground">Invalid date configuration</div>
+  }
+  
   const totalDays = Math.max(1, differenceInDays(today, startDate) + 1) // +1 to include both start and end days
 
   const habits: HabitCompletion[] = [

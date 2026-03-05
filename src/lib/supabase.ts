@@ -16,17 +16,5 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   db: {
     schema: 'public',
   },
-  global: {
-    fetch: (url, options = {}) => {
-      return fetch(url, {
-        ...options,
-        headers: {
-          ...options.headers,
-          'Accept': 'application/json',
-          'apikey': supabaseAnonKey,
-        },
-      })
-    },
-  },
 })
 
