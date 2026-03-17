@@ -16,15 +16,25 @@ export default function Library() {
   const [searchQuery, setSearchQuery] = useState('')
   const [activeTab, setActiveTab] = useState<'journals' | 'media'>('journals')
 
-  // Filter logs with journal entries
+  // Filter logs with journal entries; dedupe by date (one entry per day, prefer most recently updated)
   const journalLogs = useMemo(() => {
-    return logs.filter(log => 
+    const withEntries = logs.filter(log => 
       log.journal_entry && 
       log.journal_entry.trim() !== '' &&
       (searchQuery === '' || 
        log.journal_entry.toLowerCase().includes(searchQuery.toLowerCase()) ||
        log.log_date.includes(searchQuery))
     ).sort((a, b) => 
+      new Date(b.log_date).getTime() - new Date(a.log_date).getTime()
+    )
+    // One entry per day: keep the one with content (or first if multiple)
+    const byDate = new Map<string, typeof logs[0]>()
+    withEntries.forEach(log => {
+      if (!byDate.has(log.log_date)) {
+        byDate.set(log.log_date, log)
+      }
+    })
+    return Array.from(byDate.values()).sort((a, b) => 
       new Date(b.log_date).getTime() - new Date(a.log_date).getTime()
     )
   }, [logs, searchQuery])

@@ -96,10 +96,30 @@ export default function Onboarding() {
       return
     }
 
+    // Validate username format (alphanumeric, underscore, hyphen, 3-20 chars)
+    const usernameRegex = /^[a-zA-Z0-9_-]{3,20}$/
+    if (!usernameRegex.test(username.trim())) {
+      setError('Username must be 3-20 characters and contain only letters, numbers, underscores, or hyphens')
+      return
+    }
+
     setLoading(true)
     setError(null)
 
     try {
+      // Check username availability before insert (bypasses RLS)
+      const { data: available, error: checkError } = await supabase.rpc('check_username_available', {
+        p_username: username.trim(),
+        p_exclude_user_id: null,
+      })
+
+      if (checkError) throw checkError
+      if (!available) {
+        setError('This username is already taken. Please choose another.')
+        setLoading(false)
+        return
+      }
+
       const { error } = await supabase.from('profiles').insert({
         id: user.id,
         username: username.trim(),
@@ -123,7 +143,15 @@ export default function Onboarding() {
       
       navigate('/dashboard')
     } catch (err: any) {
-      setError(err.message || 'Failed to create profile')
+      const isDuplicate =
+        err?.code === '23505' ||
+        err?.message?.includes('duplicate') ||
+        err?.message?.includes('unique constraint')
+      setError(
+        isDuplicate
+          ? 'This username is already taken. Please choose another.'
+          : err.message || 'Failed to create profile'
+      )
     } finally {
       setLoading(false)
     }

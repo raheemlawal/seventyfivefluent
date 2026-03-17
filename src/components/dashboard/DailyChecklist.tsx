@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback } from 'react'
+import { useState, useEffect, useMemo, useCallback, useRef, forwardRef, useImperativeHandle } from 'react'
 import { useDailyLogs } from '@/hooks/useDailyLogs'
 import { useProfile } from '@/hooks/useProfile'
 import { useTranslation } from '@/hooks/useTranslation'
@@ -39,7 +39,25 @@ interface ImmersionActivityState {
   language: string | null
 }
 
-export function DailyChecklist() {
+export type DailyChecklistHandle = {
+  save: (opts?: { skipReload?: boolean }) => Promise<void>
+  hasUnsavedChanges: boolean
+}
+
+const initialActivitiesState = (targetLanguages: string[]) => ({
+  study_minutes: { value: 0, language: targetLanguages[0] || null },
+  reading_pages: { value: 0, language: targetLanguages[0] || null },
+  speaking_done: { value: false, language: targetLanguages[0] || null },
+  media: { done: false, title: '', url: '', language: targetLanguages[0] || null },
+  journal: { value: '', language: targetLanguages[0] || null },
+  immersion: { done: false, note: '', language: targetLanguages[0] || null },
+  study_log: { value: '', language: targetLanguages[0] || null },
+})
+
+export const DailyChecklist = forwardRef<
+  DailyChecklistHandle,
+  { onUnsavedChange?: (dirty: boolean) => void }
+>(function DailyChecklist({ onUnsavedChange }, ref) {
   const { profile } = useProfile()
   const { user } = useAuth()
   const { t } = useTranslation()
@@ -61,69 +79,68 @@ export function DailyChecklist() {
   }, [todayLogs])
 
   const [saving, setSaving] = useState(false)
-  
-  // State for each activity with language selection
-  const [activities, setActivities] = useState<{
-    study_minutes: { value: number; language: string | null }
-    reading_pages: { value: number; language: string | null }
-    speaking_done: { value: boolean; language: string | null }
-    media: { done: boolean; title: string; url: string; language: string | null }
-    journal: { value: string; language: string | null }
-    immersion: { done: boolean; note: string; language: string | null }
-    study_log: { value: string; language: string | null }
-  }>({
-    study_minutes: { value: 0, language: targetLanguages[0] || null },
-    reading_pages: { value: 0, language: targetLanguages[0] || null },
-    speaking_done: { value: false, language: targetLanguages[0] || null },
-    media: { done: false, title: '', url: '', language: targetLanguages[0] || null },
-    journal: { value: '', language: targetLanguages[0] || null },
-    immersion: { done: false, note: '', language: targetLanguages[0] || null },
-    study_log: { value: '', language: targetLanguages[0] || null },
-  })
+  const lastSavedRef = useRef<string | null>(null)
 
-  // Initialize activities from logs when they load
+  // State for each activity with language selection
+  const [activities, setActivities] = useState(() => initialActivitiesState(targetLanguages))
+
+  // Initialize activities from logs when they load; track last saved snapshot for dirty check
   useEffect(() => {
     if (todayLogs.length > 0) {
-      // Initialize from existing logs
       const firstLog = todayLogs[0]
-      setActivities({
-        study_minutes: { 
-          value: firstLog.study_minutes || 0, 
-          language: firstLog.language || targetLanguages[0] || null 
+      const snapshot = {
+        study_minutes: {
+          value: firstLog.study_minutes || 0,
+          language: firstLog.language || targetLanguages[0] || null,
         },
-        reading_pages: { 
-          value: firstLog.reading_pages || 0, 
-          language: firstLog.language || targetLanguages[0] || null 
+        reading_pages: {
+          value: firstLog.reading_pages || 0,
+          language: firstLog.language || targetLanguages[0] || null,
         },
-        speaking_done: { 
-          value: firstLog.speaking_done || false, 
-          language: firstLog.language || targetLanguages[0] || null 
+        speaking_done: {
+          value: firstLog.speaking_done || false,
+          language: firstLog.language || targetLanguages[0] || null,
         },
-        media: { 
-          done: firstLog.media_done || false, 
-          title: firstLog.media_title || '', 
-          url: firstLog.media_url || '', 
-          language: firstLog.language || targetLanguages[0] || null 
+        media: {
+          done: firstLog.media_done || false,
+          title: firstLog.media_title || '',
+          url: firstLog.media_url || '',
+          language: firstLog.language || targetLanguages[0] || null,
         },
-        journal: { 
-          value: firstLog.journal_entry || '', 
-          language: firstLog.language || targetLanguages[0] || null 
+        journal: {
+          value: firstLog.journal_entry || '',
+          language: firstLog.language || targetLanguages[0] || null,
         },
-        immersion: { 
-          done: firstLog.immersion_done || false, 
-          note: firstLog.immersion_note || '', 
-          language: firstLog.language || targetLanguages[0] || null 
+        immersion: {
+          done: firstLog.immersion_done || false,
+          note: firstLog.immersion_note || '',
+          language: firstLog.language || targetLanguages[0] || null,
         },
-        study_log: { 
-          value: firstLog.study_log_note || '', 
-          language: firstLog.language || targetLanguages[0] || null 
+        study_log: {
+          value: firstLog.study_log_note || '',
+          language: firstLog.language || targetLanguages[0] || null,
         },
-      })
+      }
+      setActivities(snapshot)
+      lastSavedRef.current = JSON.stringify(snapshot)
     }
   }, [todayLogs, targetLanguages])
 
+  // When there are no logs yet, mark current state as saved once loading is done
+  useEffect(() => {
+    if (!loading && todayLogs.length === 0 && lastSavedRef.current === null) {
+      lastSavedRef.current = JSON.stringify(initialActivitiesState(targetLanguages))
+    }
+  }, [loading, todayLogs.length, targetLanguages])
+
+  const isDirty = lastSavedRef.current !== null && JSON.stringify(activities) !== lastSavedRef.current
+
+  useEffect(() => {
+    onUnsavedChange?.(isDirty)
+  }, [isDirty, onUnsavedChange])
+
   // Save all activities
-  const handleSave = useCallback(async () => {
+  const handleSave = useCallback(async (opts?: { skipReload?: boolean }) => {
     if (!user || !today || saving) return
 
     setSaving(true)
@@ -131,21 +148,52 @@ export function DailyChecklist() {
       // Group activities by language and merge them into complete log entries
       const logsByLanguage = new Map<string | null, Partial<DailyLogUpdate>>()
 
-      // First, load existing data for each language to preserve fields not being updated
-      todayLogs.forEach(log => {
-        logsByLanguage.set(log.language, {
-          study_minutes: log.study_minutes || 0,
-          reading_pages: log.reading_pages || 0,
-          speaking_done: log.speaking_done || false,
-          media_done: log.media_done || false,
-          media_title: log.media_title || null,
-          media_url: log.media_url || null,
-          journal_entry: log.journal_entry || null,
-          immersion_done: log.immersion_done || false,
-          immersion_note: log.immersion_note || null,
-          study_log_note: log.study_log_note || null,
+      // For single-language users: use one canonical key to avoid creating duplicate rows.
+      // todayLogs may have language null (legacy) or the actual language - we consolidate to one entry.
+      if (hasMultipleLanguages) {
+        todayLogs.forEach(log => {
+          logsByLanguage.set(log.language ?? null, {
+            study_minutes: log.study_minutes || 0,
+            reading_pages: log.reading_pages || 0,
+            speaking_done: log.speaking_done || false,
+            media_done: log.media_done || false,
+            media_title: log.media_title || null,
+            media_url: log.media_url || null,
+            journal_entry: log.journal_entry || null,
+            immersion_done: log.immersion_done || false,
+            immersion_note: log.immersion_note || null,
+            study_log_note: log.study_log_note || null,
+          })
         })
-      })
+      } else {
+        // Single language: merge all todayLogs into one entry (there should only be one per day)
+        const singleLang = targetLanguages[0] || null
+        const merged: Partial<DailyLogUpdate> = {
+          study_minutes: 0,
+          reading_pages: 0,
+          speaking_done: false,
+          media_done: false,
+          media_title: null,
+          media_url: null,
+          journal_entry: null,
+          immersion_done: false,
+          immersion_note: null,
+          study_log_note: null,
+        }
+        todayLogs.forEach(log => {
+          merged.study_minutes = log.study_minutes ?? merged.study_minutes
+          merged.reading_pages = log.reading_pages ?? merged.reading_pages
+          merged.speaking_done = merged.speaking_done || (log.speaking_done ?? false)
+          merged.media_done = merged.media_done || (log.media_done ?? false)
+          merged.media_title = merged.media_title || log.media_title || null
+          merged.media_url = merged.media_url || log.media_url || null
+          merged.journal_entry = merged.journal_entry || log.journal_entry || null
+          merged.immersion_done = merged.immersion_done || (log.immersion_done ?? false)
+          merged.immersion_note = merged.immersion_note || log.immersion_note || null
+          merged.study_log_note = merged.study_log_note || log.study_log_note || null
+        })
+        logsByLanguage.set(singleLang, merged)
+      }
 
       // Update with current activity values
       Object.entries(activities).forEach(([key, activity]) => {
@@ -187,20 +235,27 @@ export function DailyChecklist() {
       for (const [language, updates] of logsByLanguage.entries()) {
         const languageValue = language || null
         
-        // Build query to find existing log - handle null language correctly
-        let query = supabase
-          .from('daily_logs')
-          .select('id')
-          .eq('user_id', user.id)
-          .eq('log_date', today)
+        // For single-language: use existing log from todayLogs (avoids query + language mismatch)
+        // For multi-language: query by language to find the right log
+        let existingLog: { id: string } | null = null
         
-        if (languageValue === null) {
-          query = query.is('language', null)
+        if (hasMultipleLanguages) {
+          let query = supabase
+            .from('daily_logs')
+            .select('id')
+            .eq('user_id', user.id)
+            .eq('log_date', today)
+          if (languageValue === null) {
+            query = query.is('language', null)
+          } else {
+            query = query.eq('language', languageValue)
+          }
+          const { data } = await query.maybeSingle()
+          existingLog = data
         } else {
-          query = query.eq('language', languageValue)
+          // Single language: use first log from todayLogs if any (one row per day)
+          existingLog = todayLogs.length > 0 ? { id: todayLogs[0].id } : null
         }
-        
-        const { data: existingLog } = await query.maybeSingle()
         
         if (existingLog) {
           // Update existing log
@@ -266,9 +321,12 @@ export function DailyChecklist() {
         }
       }
 
-      // Success - the logs will be refetched automatically by useDailyLogs
-      // Force a page refresh to show updated data
-      window.location.reload()
+      // Success - skip reload when saving before navigation (e.g. leave modal)
+      if (!opts?.skipReload) {
+        window.location.reload()
+      } else {
+        lastSavedRef.current = JSON.stringify(activities)
+      }
     } catch (error) {
       console.error('Failed to save:', error)
       alert('Failed to save. Please try again.')
@@ -276,6 +334,12 @@ export function DailyChecklist() {
       setSaving(false)
     }
   }, [user, today, activities, getLogForLanguage, todayLogs, saving])
+
+  useImperativeHandle(
+    ref,
+    () => ({ save: handleSave, hasUnsavedChanges: isDirty }),
+    [handleSave, isDirty]
+  )
 
   // Calculate overall completion by aggregating across all languages for today
   const overallCompletion = useMemo(() => {
@@ -619,7 +683,7 @@ export function DailyChecklist() {
         </CardContent>
         <CardFooter className="flex justify-end gap-2">
           <Button 
-            onClick={handleSave} 
+            onClick={() => handleSave()} 
             disabled={saving}
             className="min-w-[120px]"
           >
@@ -636,4 +700,4 @@ export function DailyChecklist() {
       </Card>
     </div>
   )
-}
+})

@@ -66,23 +66,21 @@ export default function Settings() {
     setError(null)
 
     try {
-      const { data, error: checkError } = await supabase
-        .from('profiles')
-        .select('id')
-        .eq('username', newUsername.trim())
-        .maybeSingle()
+      const { data: available, error: checkError } = await supabase.rpc(
+        'check_username_available',
+        {
+          p_username: newUsername.trim(),
+          p_exclude_user_id: profile?.id ?? null,
+        }
+      )
 
-      if (checkError) {
-        throw checkError
-      }
+      if (checkError) throw checkError
 
-      if (data && data.id !== profile?.id) {
-        // Username is taken by another user
-        setUsernameStatus('unavailable')
+      if (available) {
+        setUsernameStatus('available')
         setError(null)
       } else {
-        // Username is available (either not found, or it's the current user's username)
-        setUsernameStatus('available')
+        setUsernameStatus('unavailable')
         setError(null)
       }
     } catch (err: any) {
@@ -135,7 +133,15 @@ export default function Settings() {
       setTimeout(() => setSuccess(false), 3000)
     } catch (err: any) {
       console.error('Error updating username:', err)
-      setError(err.message || 'Failed to update username. Please try again.')
+      const isDuplicate =
+        err?.code === '23505' ||
+        err?.message?.includes('duplicate') ||
+        err?.message?.includes('unique constraint')
+      setError(
+        isDuplicate
+          ? 'This username is already taken. Please choose another.'
+          : err.message || 'Failed to update username. Please try again.'
+      )
     } finally {
       setSaving(false)
     }

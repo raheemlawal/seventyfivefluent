@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
 import { supabase } from '@/lib/supabase'
-import { CheckCircle2, XCircle, Loader2, Edit2, RotateCcw } from 'lucide-react'
+import { CheckCircle2, XCircle, Loader2, Edit2, RotateCcw, Mail } from 'lucide-react'
 import { Select } from '@/components/ui/select'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { format } from 'date-fns'
@@ -94,23 +94,21 @@ export default function Settings() {
     setError(null)
 
     try {
-      const { data, error: checkError } = await supabase
-        .from('profiles')
-        .select('id')
-        .eq('username', newUsername.trim())
-        .maybeSingle()
+      const { data: available, error: checkError } = await supabase.rpc(
+        'check_username_available',
+        {
+          p_username: newUsername.trim(),
+          p_exclude_user_id: profile?.id ?? null,
+        }
+      )
 
-      if (checkError) {
-        throw checkError
-      }
+      if (checkError) throw checkError
 
-      if (data && data.id !== profile?.id) {
-        // Username is taken by another user
-        setUsernameStatus('unavailable')
+      if (available) {
+        setUsernameStatus('available')
         setError(null)
       } else {
-        // Username is available (either not found, or it's the current user's username)
-        setUsernameStatus('available')
+        setUsernameStatus('unavailable')
         setError(null)
       }
     } catch (err: any) {
@@ -163,7 +161,15 @@ export default function Settings() {
       setTimeout(() => setSuccess(false), 3000)
     } catch (err: any) {
       console.error('Error updating username:', err)
-      setError(err.message || 'Failed to update username. Please try again.')
+      const isDuplicate =
+        err?.code === '23505' ||
+        err?.message?.includes('duplicate') ||
+        err?.message?.includes('unique constraint')
+      setError(
+        isDuplicate
+          ? 'This username is already taken. Please choose another.'
+          : err.message || 'Failed to update username. Please try again.'
+      )
     } finally {
       setSaving(false)
     }
@@ -557,6 +563,23 @@ export default function Settings() {
             >
               <RotateCcw className="h-4 w-4 mr-2" />
               {t.restartAccountButton}
+            </Button>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>{t.supportTitle}</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              {t.supportMessage}
+            </p>
+            <Button asChild variant="outline" className="w-full md:w-auto">
+              <a href="mailto:info@75fluent.com">
+                <Mail className="h-4 w-4 mr-2" />
+                {t.supportContactButton}
+              </a>
             </Button>
           </CardContent>
         </Card>

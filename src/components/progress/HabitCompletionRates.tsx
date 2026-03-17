@@ -134,7 +134,7 @@ export function HabitCompletionRates() {
             <div className="flex items-center justify-between text-sm">
               <span className="font-medium">{habit.habit}</span>
               <span className="text-muted-foreground">
-                {habit.completed} / {habit.total} ({habit.percentage}%)
+                {habit.completed} / {habit.total}
               </span>
             </div>
             <Progress value={habit.percentage} />
