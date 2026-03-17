@@ -85,16 +85,19 @@ export const DailyChecklist = forwardRef<
   const [activities, setActivities] = useState(() => initialActivitiesState(targetLanguages))
 
   // Initialize activities from logs when they load; track last saved snapshot for dirty check
+  // Use merged totals (sum across today's logs) so Dashboard matches History / Recent Logs
   useEffect(() => {
     if (todayLogs.length > 0) {
       const firstLog = todayLogs[0]
+      const mergedStudyMinutes = todayLogs.reduce((s, l) => s + (l.study_minutes || 0), 0)
+      const mergedReadingPages = todayLogs.reduce((s, l) => s + (l.reading_pages || 0), 0)
       const snapshot = {
         study_minutes: {
-          value: firstLog.study_minutes || 0,
+          value: mergedStudyMinutes,
           language: firstLog.language || targetLanguages[0] || null,
         },
         reading_pages: {
-          value: firstLog.reading_pages || 0,
+          value: mergedReadingPages,
           language: firstLog.language || targetLanguages[0] || null,
         },
         speaking_done: {
@@ -317,6 +320,23 @@ export const DailyChecklist = forwardRef<
               console.error('Error inserting log:', error)
               throw error
             }
+          }
+        }
+      }
+
+      // For single-language users, make sure we only keep a single log row for today.
+      // This avoids legacy duplicates (null language + real language) causing merged totals
+      // to ignore decreases (e.g. lowering minutes) in History/Recent Logs.
+      if (!hasMultipleLanguages && todayLogs.length > 1) {
+        const idsToDelete = todayLogs.slice(1).map(log => log.id)
+        if (idsToDelete.length > 0) {
+          const { error: deleteError } = await supabase
+            .from('daily_logs')
+            .delete()
+            .in('id', idsToDelete)
+
+          if (deleteError) {
+            console.error('Error cleaning duplicate daily_logs rows:', deleteError)
           }
         }
       }

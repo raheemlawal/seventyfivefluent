@@ -13,7 +13,7 @@ export default function History() {
   const { logs, loading } = useDailyLogs()
   const { t, language } = useTranslation()
 
-  // Group logs by date and language
+  // Group logs by date, then merge into one row per day (avoids duplicate rows for same day from language/null)
   // IMPORTANT: All hooks (including useMemo) must be called before any conditional returns
   const groupedLogs = useMemo(() => {
     const grouped = new Map<string, typeof logs>()
@@ -24,7 +24,24 @@ export default function History() {
       }
       grouped.get(key)!.push(log)
     })
+    // One row per day: merge all logs for that date (sum study mins/pages, OR booleans)
     return Array.from(grouped.entries())
+      .map(([date, dateLogs]) => {
+        if (dateLogs.length === 1) return [date, dateLogs] as const
+        const first = dateLogs[0]
+        const merged: typeof first = {
+          ...first,
+          study_minutes: dateLogs.reduce((s, l) => s + (l.study_minutes ?? 0), 0),
+          reading_pages: dateLogs.reduce((s, l) => s + (l.reading_pages ?? 0), 0),
+          speaking_done: dateLogs.some(l => l.speaking_done),
+          media_done: dateLogs.some(l => l.media_done),
+          immersion_done: dateLogs.some(l => l.immersion_done),
+          journal_entry: dateLogs.find(l => l.journal_entry?.trim())?.journal_entry ?? first.journal_entry,
+          study_log_note: dateLogs.find(l => l.study_log_note?.trim())?.study_log_note ?? first.study_log_note,
+          language: dateLogs.find(l => l.language)?.language ?? first.language,
+        }
+        return [date, [merged]] as const
+      })
       .sort(([dateA], [dateB]) => new Date(dateB).getTime() - new Date(dateA).getTime())
   }, [logs])
 
